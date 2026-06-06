@@ -4,6 +4,7 @@ import 'widgets/custom_bottom_nav.dart';
 import 'widgets/custom_drawer.dart';
 import '../models/account.dart';
 import 'home.dart';
+import 'profile.dart';
 
 class MainLayout extends StatefulWidget {
   final Account account;
@@ -17,10 +18,10 @@ class MainLayout extends StatefulWidget {
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
 
-  final List<Widget> _pages = [
+  List<Widget> get _pages => [
     const HomeScreen(),
     const Center(child: Text("Thống kê (Coming soon)")),
-    const Center(child: Text("Tài khoản (Coming soon)")),
+    ProfileScreen(account: widget.account),
   ];
 
   final List<String> _titles = [
