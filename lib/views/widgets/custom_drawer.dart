@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/account.dart';
 import '../login.dart';
-import '../Admin/dashboard.dart';
+import '../Admin/admin_dashboard.dart';
 
 class CustomDrawer extends StatelessWidget {
   final Account account;
