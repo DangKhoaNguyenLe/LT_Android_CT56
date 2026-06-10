@@ -31,6 +31,9 @@ class _EditSurveyPageState extends State<EditSurveyPage> {
   DateTime? ngayBatDau;
   DateTime? ngayKetThuc;
 
+  List<DanhMuc> danhMucs = [];
+  bool isLoading = true;
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +51,16 @@ class _EditSurveyPageState extends State<EditSurveyPage> {
     selectedStatus = widget.khaoSat.trangThai;
     ngayBatDau = widget.khaoSat.ngayBatDau;
     ngayKetThuc = widget.khaoSat.ngayKetThuc;
+
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final list = await controller.getDanhMucList();
+    setState(() {
+      danhMucs = list;
+      isLoading = false;
+    });
   }
 
   Future<void> pickStartDate() async {
@@ -85,7 +98,7 @@ class _EditSurveyPageState extends State<EditSurveyPage> {
     return "${date.day}/${date.month}/${date.year}";
   }
 
-  void updateSurvey() {
+  Future<void> updateSurvey() async {
     widget.khaoSat.tenKhaoSat = tenController.text.trim();
     widget.khaoSat.moTa = moTaController.text.trim();
     widget.khaoSat.danhMuc = selectedDanhMuc;
@@ -114,18 +127,21 @@ class _EditSurveyPageState extends State<EditSurveyPage> {
       return;
     }
 
-    controller.updateSurvey(widget.khaoSat);
+    await controller.updateSurvey(widget.khaoSat);
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Cập nhật khảo sát thành công")),
-    );
-
-    Navigator.pop(context, true);
+    if(context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Cập nhật khảo sát thành công")),
+      );
+      Navigator.pop(context, true);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    final danhMucs = controller.getDanhMucList();
+    if(isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return Scaffold(
       appBar: AppBar(

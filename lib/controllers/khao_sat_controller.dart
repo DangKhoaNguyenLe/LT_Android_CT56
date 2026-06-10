@@ -3,95 +3,140 @@ import '../models/danh_muc.dart';
 import '../models/cau_hoi.dart';
 import '../models/dap_an.dart';
 
+import '../database/db_helper.dart';
+
 class KhaoSatController {
-  static final List<DanhMuc> _danhMucs = [
-    DanhMuc(id: 1, tenDanhMuc: "Học tập"),
-    DanhMuc(id: 2, tenDanhMuc: "Dịch vụ"),
-    DanhMuc(id: 3, tenDanhMuc: "Sức khỏe"),
-    DanhMuc(id: 4, tenDanhMuc: "Giải trí"),
-    DanhMuc(id: 5, tenDanhMuc: "Khác"),
-  ];
+  final DatabaseHelper _dbHelper = DatabaseHelper.connection;
 
-  // Giả lập tài khoản mới tạo nên ban đầu không có khảo sát nào
-  static final List<KhaoSat> _surveys = [];
-
-  List<DanhMuc> getDanhMucList() {
-    return _danhMucs;
+  Future<List<DanhMuc>> getDanhMucList() async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query('DanhMucCauHoi');
+    return maps.map((e) => DanhMuc.fromMap(e)).toList();
   }
 
-  List<KhaoSat> getAll() {
-    return _surveys;
+  Future<List<KhaoSat>> getAll() async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query('KhaoSat');
+    List<KhaoSat> result = [];
+    for (var map in maps) {
+      result.add(await _getFullKhaoSat(map));
+    }
+    return result;
   }
 
-  List<KhaoSat> getLatestFiveSurveys() {
-    final list = List<KhaoSat>.from(_surveys);
-
-    list.sort((a, b) => b.ngayTao.compareTo(a.ngayTao));
-
-    return list.take(5).toList();
-  }
-
-  int generateSurveyId() {
-    if (_surveys.isEmpty) {
-      return 1;
+  Future<KhaoSat> _getFullKhaoSat(Map<String, dynamic> map) async {
+    final db = await _dbHelper.database;
+    
+    // Get DanhMuc
+    DanhMuc? danhMuc;
+    if (map['idDanhMuc'] != null) {
+      final dmMaps = await db.query('DanhMucCauHoi', where: 'idDanhMuc = ?', whereArgs: [map['idDanhMuc']]);
+      if (dmMaps.isNotEmpty) danhMuc = DanhMuc.fromMap(dmMaps.first);
     }
 
-    return _surveys.map((e) => e.id).reduce((a, b) => a > b ? a : b) + 1;
+    // Get CauHoi
+    final chMaps = await db.query('CauHoi', where: 'idKhaoSat = ?', whereArgs: [map['idKhaoSat']]);
+    List<CauHoi> cauHois = [];
+    for (var chMap in chMaps) {
+      // Get DapAn
+      final daMaps = await db.query('DapAn', where: 'idCauHoi = ?', whereArgs: [chMap['idCauHoi']]);
+      List<DapAn> dapAns = daMaps.map((e) => DapAn.fromMap(e)).toList();
+      cauHois.add(CauHoi.fromMap(chMap, dapAns: dapAns));
+    }
+
+    return KhaoSat.fromMap(map, danhMuc: danhMuc, cauHois: cauHois);
   }
 
-  void addSurvey(KhaoSat khaoSat) {
-    _surveys.add(khaoSat);
+  Future<List<KhaoSat>> getLatestFiveSurveys() async {
+    final db = await _dbHelper.database;
+    final List<Map<String, dynamic>> maps = await db.query('KhaoSat', orderBy: 'ngayTao DESC', limit: 5);
+    List<KhaoSat> result = [];
+    for (var map in maps) {
+      result.add(await _getFullKhaoSat(map));
+    }
+    return result;
   }
 
-  void updateSurvey(KhaoSat updatedSurvey) {
-    final index = _surveys.indexWhere((item) => item.id == updatedSurvey.id);
+  Future<int> generateSurveyId() async {
+    // Không dùng hàm này nữa vì id auto increment
+    return 0;
+  }
 
-    if (index != -1) {
-      _surveys[index] = updatedSurvey;
+  Future<int> addSurvey(KhaoSat khaoSat) async {
+    final db = await _dbHelper.database;
+    int idKhaoSat = await db.insert('KhaoSat', khaoSat.toMap());
+
+    for (var cauHoi in khaoSat.cauHois) {
+      cauHoi.id = 0;
+      int idCauHoi = await db.insert('CauHoi', cauHoi.toMap(idKhaoSat));
+      for (var dapAn in cauHoi.dapAns) {
+        dapAn.id = 0;
+        await db.insert('DapAn', dapAn.toMap(idCauHoi));
+      }
+    }
+    return idKhaoSat;
+  }
+
+  Future<void> updateSurvey(KhaoSat updatedSurvey) async {
+    final db = await _dbHelper.database;
+    await db.update('KhaoSat', updatedSurvey.toMap(), where: 'idKhaoSat = ?', whereArgs: [updatedSurvey.id]);
+
+    await db.delete('CauHoi', where: 'idKhaoSat = ?', whereArgs: [updatedSurvey.id]);
+    
+    for (var cauHoi in updatedSurvey.cauHois) {
+      cauHoi.id = 0; 
+      int idCauHoi = await db.insert('CauHoi', cauHoi.toMap(updatedSurvey.id));
+      for (var dapAn in cauHoi.dapAns) {
+        dapAn.id = 0; 
+        await db.insert('DapAn', dapAn.toMap(idCauHoi));
+      }
     }
   }
 
-  void deleteSurvey(int id) {
-    _surveys.removeWhere((item) => item.id == id);
+  Future<void> updateSurveyInfoOnly(KhaoSat updatedSurvey) async {
+    final db = await _dbHelper.database;
+    await db.update('KhaoSat', updatedSurvey.toMap(), where: 'idKhaoSat = ?', whereArgs: [updatedSurvey.id]);
   }
 
-  KhaoSat? getById(int id) {
-    try {
-      return _surveys.firstWhere((item) => item.id == id);
-    } catch (e) {
-      return null;
+  Future<void> deleteSurvey(int id) async {
+    final db = await _dbHelper.database;
+    await db.delete('KhaoSat', where: 'idKhaoSat = ?', whereArgs: [id]);
+  }
+
+  Future<KhaoSat?> getById(int id) async {
+    final db = await _dbHelper.database;
+    final maps = await db.query('KhaoSat', where: 'idKhaoSat = ?', whereArgs: [id]);
+    if (maps.isNotEmpty) {
+      return await _getFullKhaoSat(maps.first);
     }
+    return null;
   }
 
-  List<KhaoSat> searchByName(String keyword) {
-    if (keyword.trim().isEmpty) {
-      return getLatestFiveSurveys();
+  Future<List<KhaoSat>> searchByName(String keyword) async {
+    if (keyword.trim().isEmpty) return getLatestFiveSurveys();
+    final db = await _dbHelper.database;
+    final maps = await db.query('KhaoSat', where: 'tenKhaoSat LIKE ?', whereArgs: ['%${keyword.trim()}%'], orderBy: 'ngayTao DESC', limit: 5);
+    List<KhaoSat> result = [];
+    for (var map in maps) {
+      result.add(await _getFullKhaoSat(map));
     }
-
-    final list = _surveys.where((item) {
-      return item.tenKhaoSat
-          .toLowerCase()
-          .contains(keyword.trim().toLowerCase());
-    }).toList();
-
-    list.sort((a, b) => b.ngayTao.compareTo(a.ngayTao));
-
-    return list.take(5).toList();
+    return result;
   }
 
-  List<KhaoSat> searchByMonth(int month) {
-    final list = _surveys.where((item) {
-      return item.ngayTao.month == month;
-    }).toList();
-
-    list.sort((a, b) => b.ngayTao.compareTo(a.ngayTao));
-
-    return list.take(5).toList();
+  Future<List<KhaoSat>> searchByMonth(int month) async {
+    final db = await _dbHelper.database;
+    String monthStr = month < 10 ? '0$month' : '$month';
+    final maps = await db.query('KhaoSat', where: "strftime('%m', ngayTao) = ?", whereArgs: [monthStr], orderBy: 'ngayTao DESC', limit: 5);
+    List<KhaoSat> result = [];
+    for (var map in maps) {
+      result.add(await _getFullKhaoSat(map));
+    }
+    return result;
   }
 
-  KhaoSat copySurvey(KhaoSat oldSurvey) {
+  Future<KhaoSat> copySurvey(KhaoSat oldSurvey) async {
     final copiedSurvey = KhaoSat(
-      id: generateSurveyId(),
+      id: 0,
       tenKhaoSat: "Bản sao ${oldSurvey.tenKhaoSat}",
       moTa: oldSurvey.moTa,
       ngayTao: DateTime.now(),
@@ -108,14 +153,14 @@ class KhaoSatController {
       soNguoiThamGia: oldSurvey.soNguoiThamGia,
       cauHois: oldSurvey.cauHois.map((cauHoi) {
         return CauHoi(
-          id: cauHoi.id,
+          id: 0,
           noiDung: cauHoi.noiDung,
           loaiCauHoi: cauHoi.loaiCauHoi,
           batBuoc: cauHoi.batBuoc,
           hinhAnh: cauHoi.hinhAnh,
           dapAns: cauHoi.dapAns.map((dapAn) {
             return DapAn(
-              id: dapAn.id,
+              id: 0,
               noiDung: dapAn.noiDung,
             );
           }).toList(),
@@ -123,8 +168,8 @@ class KhaoSatController {
       }).toList(),
     );
 
-    _surveys.add(copiedSurvey);
-
+    int newId = await addSurvey(copiedSurvey);
+    copiedSurvey.id = newId;
     return copiedSurvey;
   }
 

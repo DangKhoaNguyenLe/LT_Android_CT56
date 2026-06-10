@@ -36,8 +36,8 @@ class CustomBottomNav extends StatelessWidget {
             label: 'Khảo sát',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Thống kê',
+            icon: Icon(Icons.account_balance_wallet),
+            label: 'Ví thưởng',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person),

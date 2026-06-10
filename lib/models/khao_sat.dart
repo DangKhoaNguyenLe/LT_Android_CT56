@@ -99,4 +99,46 @@ class KhaoSat {
 
     return "$batDau - $ketThuc";
   }
+
+  Map<String, dynamic> toMap() {
+    return {
+      'idKhaoSat': id == 0 ? null : id,
+      'tenKhaoSat': tenKhaoSat,
+      'moTa': moTa,
+      'ngayTao': ngayTao.toIso8601String(),
+      'ngayBatDau': ngayBatDau?.toIso8601String(),
+      'ngayKetThuc': ngayKetThuc?.toIso8601String(),
+      'idDanhMuc': danhMuc?.id,
+      'trangThai': trangThai.index,
+      'loaiPhanThuong': loaiPhanThuong.index,
+      'giaTriPhanThuong': giaTriPhanThuong,
+      'gioiHanNguoiThamGia': gioiHanNguoiThamGia,
+      'soPhanHoi': soPhanHoi,
+      'soHoanThanh': soHoanThanh,
+      'danhGiaTrungBinh': danhGiaTrungBinh,
+      'soNguoiThamGia': soNguoiThamGia,
+      'idTaiKhoan': 1,
+    };
+  }
+
+  factory KhaoSat.fromMap(Map<String, dynamic> map, {DanhMuc? danhMuc, List<CauHoi>? cauHois}) {
+    return KhaoSat(
+      id: map['idKhaoSat'] as int? ?? 0,
+      tenKhaoSat: map['tenKhaoSat'] as String? ?? '',
+      moTa: map['moTa'] as String? ?? '',
+      ngayTao: map['ngayTao'] != null ? DateTime.parse(map['ngayTao']) : DateTime.now(),
+      ngayBatDau: map['ngayBatDau'] != null ? DateTime.parse(map['ngayBatDau']) : null,
+      ngayKetThuc: map['ngayKetThuc'] != null ? DateTime.parse(map['ngayKetThuc']) : null,
+      danhMuc: danhMuc,
+      trangThai: TrangThaiKhaoSat.values[map['trangThai'] as int? ?? 0],
+      loaiPhanThuong: LoaiPhanThuong.values[map['loaiPhanThuong'] as int? ?? 0],
+      giaTriPhanThuong: map['giaTriPhanThuong'] as String?,
+      gioiHanNguoiThamGia: map['gioiHanNguoiThamGia'] as int?,
+      soPhanHoi: map['soPhanHoi'] as int? ?? 0,
+      soHoanThanh: map['soHoanThanh'] as int? ?? 0,
+      danhGiaTrungBinh: (map['danhGiaTrungBinh'] as num?)?.toDouble() ?? 0.0,
+      soNguoiThamGia: map['soNguoiThamGia'] as int? ?? 0,
+      cauHois: cauHois ?? [],
+    );
+  }
 }

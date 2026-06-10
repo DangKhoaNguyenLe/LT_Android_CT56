@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import '../../models/account.dart';
 import '../login.dart';
+import '../login.dart';
 import '../Admin/admin_dashboard.dart';
+import '../history.dart';
+import '../profile.dart';
 
 class CustomDrawer extends StatelessWidget {
   final Account account;
@@ -38,16 +41,31 @@ class CustomDrawer extends StatelessWidget {
             leading: const Icon(Icons.history),
             title: const Text('Lịch sử khảo sát'),
             onTap: () {
-              // TODO: Chuyển sang màn hình lịch sử
               Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => HistoryScreen(account: account)),
+              );
             },
           ),
           ListTile(
             leading: const Icon(Icons.manage_accounts),
             title: const Text('Quản lý tài khoản'),
             onTap: () {
-              // TODO: Chuyển sang màn hình tài khoản
               Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Scaffold(
+                    appBar: AppBar(
+                      title: const Text('Quản lý tài khoản'),
+                      backgroundColor: const Color(0xFF0EA5E9),
+                      foregroundColor: Colors.white,
+                    ),
+                    body: ProfileScreen(account: account),
+                  ),
+                ),
+              );
             },
           ),
           const Spacer(), // Đẩy các nút bên dưới xuống đáy

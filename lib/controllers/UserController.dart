@@ -46,4 +46,32 @@ class UserController {
       return null;
     }
   }
+
+  // Lấy danh sách tất cả tài khoản
+  Future<List<Account>> getAllUsers() async {
+    try {
+      final db = await _dbHelper.database;
+      final List<Map<String, dynamic>> maps = await db.query('TaiKhoan');
+      return maps.map((e) => Account.SqlMapObject(e)).toList();
+    } catch (e) {
+      print("Lỗi lấy danh sách user: $e");
+      return [];
+    }
+  }
+
+  // Xóa tài khoản
+  Future<bool> deleteUser(int id) async {
+    try {
+      final db = await _dbHelper.database;
+      int result = await db.delete(
+        'TaiKhoan',
+        where: 'idTaiKhoan = ?',
+        whereArgs: [id],
+      );
+      return result > 0;
+    } catch (e) {
+      print("Lỗi xóa user: $e");
+      return false;
+    }
+  }
 }

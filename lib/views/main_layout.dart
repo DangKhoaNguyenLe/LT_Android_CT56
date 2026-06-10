@@ -5,6 +5,7 @@ import 'widgets/custom_drawer.dart';
 import '../models/account.dart';
 import 'home.dart';
 import 'profile.dart';
+import 'wallet.dart';
 
 class MainLayout extends StatefulWidget {
   final Account account;
@@ -19,14 +20,14 @@ class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
 
   List<Widget> get _pages => [
-    const HomeScreen(),
-    const Center(child: Text("Thống kê (Coming soon)")),
+    HomeScreen(account: widget.account),
+    WalletScreen(userId: widget.account.id ?? 1),
     ProfileScreen(account: widget.account),
   ];
 
   final List<String> _titles = [
     'Quản lí khảo sát',
-    'Thống kê & Báo cáo',
+    'Ví phần thưởng',
     'Tài khoản của tôi',
   ];
 
@@ -35,10 +36,7 @@ class _MainLayoutState extends State<MainLayout> {
     return Scaffold(
       appBar: CustomAppBar(title: _titles[_currentIndex]),
       drawer: CustomDrawer(account: widget.account),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _pages,
-      ),
+      body: _pages[_currentIndex],
       bottomNavigationBar: CustomBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) {

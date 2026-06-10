@@ -4,33 +4,29 @@ import '../models/khao_sat.dart';
 class ThongKeController {
   final KhaoSatController khaoSatController = KhaoSatController();
 
-  List<KhaoSat> getAllSurveys() {
+  Future<List<KhaoSat>> getAllSurveys() {
     return khaoSatController.getAll();
   }
 
-  int getTongSoPhanHoi() {
+  int getTongSoPhanHoi(List<KhaoSat> surveys) {
     int total = 0;
-
-    for (final survey in getAllSurveys()) {
+    for (final survey in surveys) {
       total += survey.soPhanHoi;
     }
-
     return total;
   }
 
-  int getTongSoHoanThanh() {
+  int getTongSoHoanThanh(List<KhaoSat> surveys) {
     int total = 0;
-
-    for (final survey in getAllSurveys()) {
+    for (final survey in surveys) {
       total += survey.soHoanThanh;
     }
-
     return total;
   }
 
-  double getTiLeHoanThanh() {
-    final tongPhanHoi = getTongSoPhanHoi();
-    final tongHoanThanh = getTongSoHoanThanh();
+  double getTiLeHoanThanh(List<KhaoSat> surveys) {
+    final tongPhanHoi = getTongSoPhanHoi(surveys);
+    final tongHoanThanh = getTongSoHoanThanh(surveys);
 
     if (tongPhanHoi == 0) {
       return 0;
@@ -39,53 +35,50 @@ class ThongKeController {
     return tongHoanThanh / tongPhanHoi * 100;
   }
 
-  double getDanhGiaTrungBinh() {
-    final surveys = getAllSurveys()
+  double getDanhGiaTrungBinh(List<KhaoSat> surveys) {
+    final filteredSurveys = surveys
         .where((item) => item.danhGiaTrungBinh > 0)
         .toList();
 
-    if (surveys.isEmpty) {
+    if (filteredSurveys.isEmpty) {
       return 0;
     }
 
     double total = 0;
-
-    for (final survey in surveys) {
+    for (final survey in filteredSurveys) {
       total += survey.danhGiaTrungBinh;
     }
 
-    return total / surveys.length;
+    return total / filteredSurveys.length;
   }
 
-  int getTongSoKhaoSat() {
-    return getAllSurveys().length;
+  int getTongSoKhaoSat(List<KhaoSat> surveys) {
+    return surveys.length;
   }
 
-  int getSoKhaoSatDangMo() {
-    return getAllSurveys()
+  int getSoKhaoSatDangMo(List<KhaoSat> surveys) {
+    return surveys
         .where((item) => item.trangThai == TrangThaiKhaoSat.dangMo)
         .length;
   }
 
-  int getSoKhaoSatBanNhap() {
-    return getAllSurveys()
+  int getSoKhaoSatBanNhap(List<KhaoSat> surveys) {
+    return surveys
         .where((item) => item.trangThai == TrangThaiKhaoSat.banNhap)
         .length;
   }
 
-  int getSoKhaoSatDaDong() {
-    return getAllSurveys()
+  int getSoKhaoSatDaDong(List<KhaoSat> surveys) {
+    return surveys
         .where((item) => item.trangThai == TrangThaiKhaoSat.daDong)
         .length;
   }
 
-  Map<String, int> getPhanHoiTheoKhaoSat() {
+  Map<String, int> getPhanHoiTheoKhaoSat(List<KhaoSat> surveys) {
     final Map<String, int> data = {};
-
-    for (final survey in getAllSurveys()) {
+    for (final survey in surveys) {
       data[survey.tenKhaoSat] = survey.soPhanHoi;
     }
-
     return data;
   }
 }

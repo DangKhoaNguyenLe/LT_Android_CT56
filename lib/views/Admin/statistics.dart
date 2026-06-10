@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../../controllers/thong_ke_controller.dart';
+import '../../models/khao_sat.dart';
+import 'survey_statistics_detail.dart';
 
 class StatisticsPage extends StatefulWidget {
   const StatisticsPage({super.key});
@@ -13,12 +15,28 @@ class _StatisticsPageState extends State<StatisticsPage> {
   final ThongKeController controller = ThongKeController();
 
   String selectedMode = "Tổng quan phân tích";
+  List<KhaoSat> surveys = [];
+  bool isLoading = true;
 
   final List<String> modes = [
     "Tổng quan phân tích",
     "Xem tỷ lệ phản hồi khảo sát",
-    "Xem đánh giá ẩn danh",
+    "Xem chi tiết từng khảo sát",
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final fetched = await controller.getAllSurveys();
+    setState(() {
+      surveys = fetched;
+      isLoading = false;
+    });
+  }
 
   Widget buildSummaryCard({
     required String title,
@@ -64,10 +82,10 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   Widget buildOverview() {
-    final tongPhanHoi = controller.getTongSoPhanHoi();
-    final tongHoanThanh = controller.getTongSoHoanThanh();
-    final tiLeHoanThanh = controller.getTiLeHoanThanh();
-    final danhGiaTrungBinh = controller.getDanhGiaTrungBinh();
+    final tongPhanHoi = controller.getTongSoPhanHoi(surveys);
+    final tongHoanThanh = controller.getTongSoHoanThanh(surveys);
+    final tiLeHoanThanh = controller.getTiLeHoanThanh(surveys);
+    final danhGiaTrungBinh = controller.getDanhGiaTrungBinh(surveys);
 
     return GridView.count(
       crossAxisCount: 2,
@@ -102,7 +120,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   }
 
   Widget buildResponseRate() {
-    final data = controller.getPhanHoiTheoKhaoSat();
+    final data = controller.getPhanHoiTheoKhaoSat(surveys);
 
     if (data.isEmpty) {
       return const Center(
@@ -173,17 +191,14 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 
-  Widget buildAnonymousReview() {
-    final surveys = controller.getAllSurveys()
-        .where((item) => item.danhGiaTrungBinh > 0)
-        .toList();
 
+  Widget buildSurveyDetailList() {
     if (surveys.isEmpty) {
       return const Center(
         child: Padding(
           padding: EdgeInsets.all(20),
           child: Text(
-            "Chưa có đánh giá",
+            "Chưa có khảo sát nào",
             style: TextStyle(fontSize: 15),
           ),
         ),
@@ -194,10 +209,11 @@ class _StatisticsPageState extends State<StatisticsPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Đánh giá trung bình theo khảo sát",
+          "Nhấn vào khảo sát để xem thống kê chi tiết câu trả lời",
           style: TextStyle(
-            fontSize: 16,
+            fontSize: 14,
             fontWeight: FontWeight.w500,
+            color: Colors.black87,
           ),
         ),
         const SizedBox(height: 12),
@@ -207,26 +223,22 @@ class _StatisticsPageState extends State<StatisticsPage> {
             child: ListTile(
               leading: const CircleAvatar(
                 backgroundColor: Color(0xff08aff0),
-                child: Icon(
-                  Icons.person,
-                  color: Colors.white,
-                ),
+                child: Icon(Icons.assignment, color: Colors.white),
               ),
               title: Text(
                 survey.tenKhaoSat,
-                style: const TextStyle(color: Colors.black),
+                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w500),
               ),
-              subtitle: const Text(
-                "Người dùng ẩn danh",
-                style: TextStyle(color: Colors.black54),
-              ),
-              trailing: Text(
-                "${survey.danhGiaTrungBinh.toStringAsFixed(1)}/5.0",
-                style: const TextStyle(
-                  color: Colors.black,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              subtitle: Text("Phản hồi: ${survey.soPhanHoi} | Hoàn thành: ${survey.soHoanThanh}"),
+              trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => SurveyStatisticsDetail(khaoSat: survey),
+                  ),
+                );
+              },
             ),
           );
         }).toList(),
@@ -239,8 +251,8 @@ class _StatisticsPageState extends State<StatisticsPage> {
       return buildResponseRate();
     }
 
-    if (selectedMode == "Xem đánh giá ẩn danh") {
-      return buildAnonymousReview();
+    if (selectedMode == "Xem chi tiết từng khảo sát") {
+      return buildSurveyDetailList();
     }
 
     return buildOverview();
@@ -254,33 +266,35 @@ class _StatisticsPageState extends State<StatisticsPage> {
         title: const Text("Dashboard phân tích khảo sát"),
         centerTitle: true,
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(12),
-        children: [
-          DropdownButtonFormField<String>(
-            value: selectedMode,
-            decoration: const InputDecoration(
-              labelText: "Lựa chọn phân tích",
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : ListView(
+              padding: const EdgeInsets.all(12),
+              children: [
+                DropdownButtonFormField<String>(
+                  value: selectedMode,
+                  decoration: const InputDecoration(
+                    labelText: "Lựa chọn phân tích",
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(),
+                  ),
+                  items: modes.map((item) {
+                    return DropdownMenuItem(
+                      value: item,
+                      child: Text(item),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedMode = value!;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16),
+                buildContent(),
+              ],
             ),
-            items: modes.map((item) {
-              return DropdownMenuItem(
-                value: item,
-                child: Text(item),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedMode = value!;
-              });
-            },
-          ),
-          const SizedBox(height: 16),
-          buildContent(),
-        ],
-      ),
     );
   }
 }

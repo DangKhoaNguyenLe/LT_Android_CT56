@@ -22,12 +22,14 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
   @override
   void initState() {
     super.initState();
-    surveys = controller.getAll();
+    surveys = [];
+    refreshData();
   }
 
-  void refreshData() {
+  Future<void> refreshData() async {
+    final fetched = await controller.getAll();
     setState(() {
-      surveys = controller.getAll();
+      surveys = fetched;
     });
   }
 
@@ -50,10 +52,10 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            onPressed: () {
-              controller.deleteSurvey(survey.id);
-              Navigator.pop(context);
-              refreshData();
+            onPressed: () async {
+              await controller.deleteSurvey(survey.id);
+              if(context.mounted) Navigator.pop(context);
+              await refreshData();
             },
             child: const Text("Xóa"),
           ),
@@ -62,15 +64,31 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
     );
   }
 
-  void copySurvey(KhaoSat survey) {
-    controller.copySurvey(survey);
-    refreshData();
+  Future<void> copySurvey(KhaoSat survey) async {
+    await controller.copySurvey(survey);
+    await refreshData();
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Đã sao chép khảo sát thành bản nháp"),
-      ),
-    );
+    if(context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Đã sao chép khảo sát thành bản nháp"),
+        ),
+      );
+    }
+  }
+
+  Future<void> updateSurveyStatus(KhaoSat survey, TrangThaiKhaoSat newStatus) async {
+    survey.trangThai = newStatus;
+    await controller.updateSurveyInfoOnly(survey);
+    await refreshData();
+
+    if(context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Đã cập nhật trạng thái thành: ${survey.getTrangThaiText()}"),
+        ),
+      );
+    }
   }
 
   Color getStatusColor(TrangThaiKhaoSat status) {
@@ -133,6 +151,10 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
               refreshData();
             } else if (value == "copy") {
               copySurvey(survey);
+            } else if (value == "publish") {
+              updateSurveyStatus(survey, TrangThaiKhaoSat.dangMo);
+            } else if (value == "close") {
+              updateSurveyStatus(survey, TrangThaiKhaoSat.daDong);
             } else if (value == "delete") {
               confirmDelete(survey);
             }
@@ -155,6 +177,16 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
               child: Text("Sao chép"),
             ),
             const PopupMenuDivider(),
+            if (survey.trangThai != TrangThaiKhaoSat.dangMo)
+              const PopupMenuItem(
+                value: "publish",
+                child: Text("Xuất bản", style: TextStyle(color: Colors.green)),
+              ),
+            if (survey.trangThai == TrangThaiKhaoSat.dangMo)
+              const PopupMenuItem(
+                value: "close",
+                child: Text("Đóng khảo sát", style: TextStyle(color: Colors.orange)),
+              ),
             const PopupMenuItem(
               value: "delete",
               child: Text(

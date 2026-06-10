@@ -7,8 +7,12 @@ import 'manage_survey.dart';
 import 'create_survey.dart';
 import 'profile_page.dart';
 import 'setting_page.dart';
-import 'login_page.dart';
+import '../login.dart';
 import 'statistics.dart';
+import 'manage_user.dart';
+import 'manage_category.dart';
+import 'survey_preview.dart';
+import '../home.dart';
 
 class AdminDashboard extends StatefulWidget {
   const AdminDashboard({super.key});
@@ -30,8 +34,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
   void initState() {
     super.initState();
 
-    surveys = controller.getLatestFiveSurveys();
     isLocked = adminUserController.isProfileLocked();
+    refreshData();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       checkFirstSetup();
@@ -71,9 +75,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  void refreshData() {
+  Future<void> refreshData() async {
+    final fetchedSurveys = await controller.getLatestFiveSurveys();
     setState(() {
-      surveys = controller.getLatestFiveSurveys();
+      surveys = fetchedSurveys;
       searchController.clear();
       selectedMonth = null;
       isLocked = adminUserController.isProfileLocked();
@@ -90,30 +95,30 @@ class _AdminDashboardState extends State<AdminDashboard> {
     );
   }
 
-  void searchSurvey() {
+  Future<void> searchSurvey() async {
     if (isLocked) {
       return;
     }
 
+    final fetchedSurveys = await controller.searchByName(searchController.text);
     setState(() {
-      surveys = controller.searchByName(searchController.text);
+      surveys = fetchedSurveys;
     });
   }
 
-  void filterByMonth(int? month) {
+  Future<void> filterByMonth(int? month) async {
     if (isLocked) {
       showLockedMessage();
       return;
     }
 
+    final fetchedSurveys = month == null 
+        ? await controller.getLatestFiveSurveys() 
+        : await controller.searchByMonth(month);
+
     setState(() {
       selectedMonth = month;
-
-      if (month == null) {
-        surveys = controller.getLatestFiveSurveys();
-      } else {
-        surveys = controller.searchByMonth(month);
-      }
+      surveys = fetchedSurveys;
     });
   }
 
@@ -186,7 +191,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
-        builder: (_) => const LoginPage(),
+        builder: (_) => const LoginScreen(),
       ),
     );
   }
@@ -289,6 +294,24 @@ class _AdminDashboardState extends State<AdminDashboard> {
           ),
 
           ListTile(
+            leading: const Icon(Icons.people),
+            title: const Text("Quản lý người dùng"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageUserScreen()));
+            },
+          ),
+
+          ListTile(
+            leading: const Icon(Icons.category),
+            title: const Text("Quản lý danh mục"),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(context, MaterialPageRoute(builder: (_) => const ManageCategoryScreen()));
+            },
+          ),
+
+          ListTile(
             leading: const Icon(Icons.analytics_outlined),
             title: const Text("Phân tích khảo sát"),
             onTap: () {
@@ -309,6 +332,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
           const Spacer(),
 
           const Divider(),
+
+          ListTile(
+            leading: const Icon(Icons.home, color: Colors.blue),
+            title: const Text(
+              "Về trang chủ",
+              style: TextStyle(color: Colors.blue),
+            ),
+            onTap: () {
+              Navigator.pop(context); // Đóng Drawer
+              Navigator.pop(context); // Đóng AdminDashboard, trở về MainLayout
+            },
+          ),
 
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
@@ -365,13 +400,22 @@ class _AdminDashboardState extends State<AdminDashboard> {
   Widget buildSurveyCard(KhaoSat survey) {
     return Opacity(
       opacity: isLocked ? 0.45 : 1,
-      child: Card(
-        color: Colors.white,
-        margin: const EdgeInsets.only(bottom: 14),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-          side: const BorderSide(color: Colors.black54),
-        ),
+      child: InkWell(
+        onTap: isLocked ? null : () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => SurveyPreviewPage(khaoSat: survey),
+            ),
+          );
+        },
+        child: Card(
+          color: Colors.white,
+          margin: const EdgeInsets.only(bottom: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+            side: const BorderSide(color: Colors.black54),
+          ),
         child: Padding(
           padding: const EdgeInsets.all(14),
           child: Row(
@@ -458,6 +502,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ],
           ),
         ),
+      ),
       ),
     );
   }

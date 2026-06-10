@@ -27,6 +27,23 @@ class SurveySetupPage extends StatefulWidget {
 class _SurveySetupPageState extends State<SurveySetupPage> {
   final KhaoSatController controller = KhaoSatController();
 
+  List<DanhMuc> danhMucs = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    final list = await controller.getDanhMucList();
+    setState(() {
+      danhMucs = list;
+      isLoading = false;
+    });
+  }
+
   final TextEditingController phanThuongController = TextEditingController();
   final TextEditingController gioiHanController = TextEditingController();
 
@@ -154,9 +171,9 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
     return selectedRewardValue;
   }
 
-  KhaoSat buildSurvey(TrangThaiKhaoSat status) {
+  Future<KhaoSat> buildSurvey(TrangThaiKhaoSat status) async {
     return KhaoSat(
-      id: controller.generateSurveyId(),
+      id: await controller.generateSurveyId(),
       tenKhaoSat: widget.tenKhaoSat,
       moTa: widget.moTa,
       ngayTao: DateTime.now(),
@@ -179,8 +196,8 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
     );
   }
 
-  void saveDraft() {
-    final survey = buildSurvey(TrangThaiKhaoSat.banNhap);
+  Future<void> saveDraft() async {
+    final survey = await buildSurvey(TrangThaiKhaoSat.banNhap);
 
     final error = controller.validateSurvey(
       survey,
@@ -192,14 +209,14 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
       return;
     }
 
-    controller.addSurvey(survey);
+    await controller.addSurvey(survey);
 
     showMessage(T.text("draftSaved"));
-    Navigator.pop(context, true);
+    if(context.mounted) Navigator.pop(context, true);
   }
 
-  void publishSurvey() {
-    final survey = buildSurvey(TrangThaiKhaoSat.dangMo);
+  Future<void> publishSurvey() async {
+    final survey = await buildSurvey(TrangThaiKhaoSat.dangMo);
 
     final error = controller.validateSurvey(
       survey,
@@ -211,21 +228,23 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
       return;
     }
 
-    controller.addSurvey(survey);
+    await controller.addSurvey(survey);
 
     showMessage(T.text("createSuccess"));
-    Navigator.pop(context, true);
+    if(context.mounted) Navigator.pop(context, true);
   }
 
-  void previewSurvey() {
-    final survey = buildSurvey(TrangThaiKhaoSat.banNhap);
+  Future<void> previewSurvey() async {
+    final survey = await buildSurvey(TrangThaiKhaoSat.banNhap);
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SurveyPreviewPage(khaoSat: survey),
-      ),
-    );
+    if(context.mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SurveyPreviewPage(khaoSat: survey),
+        ),
+      );
+    }
   }
 
   Widget buildSurveyInfoCard() {
@@ -358,7 +377,9 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
 
   @override
   Widget build(BuildContext context) {
-    final danhMucs = controller.getDanhMucList();
+    if(isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
     return ValueListenableBuilder<Locale>(
       valueListenable: T.locale,

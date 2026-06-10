@@ -19,10 +19,51 @@ class DatabaseHelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 4,
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
       onConfigure: _onConfigure,
+      onOpen: (db) async {
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS ViPhanThuong (
+              idVi INTEGER PRIMARY KEY AUTOINCREMENT,
+              idTaiKhoan INTEGER,
+              tenKhaoSat NVARCHAR(255),
+              loaiPhanThuong INTEGER,
+              giaTri NVARCHAR(255),
+              ngayNhan TEXT,
+              FOREIGN KEY (idTaiKhoan) REFERENCES TaiKhoan (idTaiKhoan) ON DELETE CASCADE
+          )
+        ''');
+      },
     );
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute('DROP TABLE IF EXISTS ChiTietLichSuKhaoSat');
+      await db.execute('DROP TABLE IF EXISTS LichSuKhaoSat');
+      await db.execute('DROP TABLE IF EXISTS CauHoiKhaoSat');
+      await db.execute('DROP TABLE IF EXISTS DapAn');
+      await db.execute('DROP TABLE IF EXISTS CauHoi');
+      await db.execute('DROP TABLE IF EXISTS KhaoSat');
+      await db.execute('DROP TABLE IF EXISTS DanhMucCauHoi');
+      await db.execute('DROP TABLE IF EXISTS TaiKhoan');
+      await _onCreate(db, newVersion);
+    } else if (oldVersion < 4) {
+      // Đảm bảo tạo bảng nếu các phiên bản trước bị lỗi
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS ViPhanThuong (
+            idVi INTEGER PRIMARY KEY AUTOINCREMENT,
+            idTaiKhoan INTEGER,
+            tenKhaoSat NVARCHAR(255),
+            loaiPhanThuong INTEGER,
+            giaTri NVARCHAR(255),
+            ngayNhan TEXT,
+            FOREIGN KEY (idTaiKhoan) REFERENCES TaiKhoan (idTaiKhoan) ON DELETE CASCADE
+        )
+      ''');
+    }
   }
 
   Future _onConfigure(Database db) async {
@@ -56,67 +97,67 @@ class DatabaseHelper {
       )
     ''');
 
-    // 3. Bảng CauHoi
+    // 3. KhaoSat
     await db.execute('''
-      CREATE TABLE CauHoi (
-          idCauHoi INTEGER PRIMARY KEY AUTOINCREMENT,
-          CauHoi NVARCHAR(255) NOT NULL,
-          KieuCauHoi INTEGER, 
+      CREATE TABLE KhaoSat (
+          idKhaoSat INTEGER PRIMARY KEY AUTOINCREMENT,
+          tenKhaoSat NVARCHAR(255) NOT NULL,
+          moTa NVARCHAR(255),
+          ngayTao TEXT,
+          ngayBatDau TEXT,
+          ngayKetThuc TEXT,
           idDanhMuc INTEGER,
+          trangThai INTEGER, 
+          loaiPhanThuong INTEGER,
+          giaTriPhanThuong NVARCHAR(255),
+          gioiHanNguoiThamGia INTEGER,
+          soPhanHoi INTEGER,
+          soHoanThanh INTEGER,
+          danhGiaTrungBinh REAL,
+          soNguoiThamGia INTEGER,
+          idTaiKhoan INTEGER,
+          FOREIGN KEY (idTaiKhoan) REFERENCES TaiKhoan (idTaiKhoan),
           FOREIGN KEY (idDanhMuc) REFERENCES DanhMucCauHoi (idDanhMuc)
       )
     ''');
 
-    // 4. Bảng DapAn
+    // 4. CauHoi
     await db.execute('''
-      CREATE TABLE DapAn (
-          idDapAn INTEGER PRIMARY KEY AUTOINCREMENT,
-          tenDapAn NVARCHAR(255) NOT NULL,
-          idCauHoi INTEGER,
-          FOREIGN KEY (idCauHoi) REFERENCES CauHoi (idCauHoi) ON DELETE CASCADE
-      )
-    ''');
-
-    // 5. Bảng KhaoSat
-    await db.execute('''
-      CREATE TABLE KhaoSat (
-          idKhaoSat INTEGER PRIMARY KEY AUTOINCREMENT,
-          TieuDe NVARCHAR(255) NOT NULL,
-          MoTa NVARCHAR(255),
-          CheDo NVARCHAR(255),
-          TrangThai INTEGER, 
-          ThoiGianMo TEXT,
-          ThoiGianDong TEXT,
-          idTaiKhoan INTEGER,
-          FOREIGN KEY (idTaiKhoan) REFERENCES TaiKhoan (idTaiKhoan)
-      )
-    ''');
-
-    // 6. Bảng CauHoiKhaoSat (Bảng trung gian n-n)
-    await db.execute('''
-      CREATE TABLE CauHoiKhaoSat (
-          idCauHoi INTEGER,
+      CREATE TABLE CauHoi (
+          idCauHoi INTEGER PRIMARY KEY AUTOINCREMENT,
           idKhaoSat INTEGER,
-          Batbuoc INTEGER, 
-          PRIMARY KEY (idCauHoi, idKhaoSat),
-          FOREIGN KEY (idCauHoi) REFERENCES CauHoi (idCauHoi),
+          noiDung NVARCHAR(255) NOT NULL,
+          loaiCauHoi INTEGER, 
+          batBuoc INTEGER,
+          hinhAnh TEXT,
           FOREIGN KEY (idKhaoSat) REFERENCES KhaoSat (idKhaoSat) ON DELETE CASCADE
       )
     ''');
 
-    // 7. Bảng LichSuKhaoSat
+    // 5. DapAn
+    await db.execute('''
+      CREATE TABLE DapAn (
+          idDapAn INTEGER PRIMARY KEY AUTOINCREMENT,
+          idCauHoi INTEGER,
+          noiDung NVARCHAR(255) NOT NULL,
+          hinhAnh TEXT,
+          FOREIGN KEY (idCauHoi) REFERENCES CauHoi (idCauHoi) ON DELETE CASCADE
+      )
+    ''');
+
+    // 6. LichSuKhaoSat
     await db.execute('''
       CREATE TABLE LichSuKhaoSat (
           idLichSu INTEGER PRIMARY KEY AUTOINCREMENT,
           idKhaoSat INTEGER,
-          NgayLam TEXT,
           idTaiKhoan INTEGER,
-          FOREIGN KEY (idKhaoSat) REFERENCES KhaoSat (idKhaoSat),
-          FOREIGN KEY (idTaiKhoan) REFERENCES TaiKhoan (idTaiKhoan)
+          NgayLam TEXT,
+          FOREIGN KEY (idKhaoSat) REFERENCES KhaoSat (idKhaoSat) ON DELETE CASCADE,
+          FOREIGN KEY (idTaiKhoan) REFERENCES TaiKhoan (idTaiKhoan) ON DELETE CASCADE
       )
     ''');
 
-    // 8. Bảng ChiTietLichSuKhaoSat
+    // 7. ChiTietLichSuKhaoSat
     await db.execute('''
       CREATE TABLE ChiTietLichSuKhaoSat (
           idChiTiet INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -125,8 +166,21 @@ class DatabaseHelper {
           idDapAn INTEGER, 
           NoiDungTraLoi NVARCHAR(255), 
           FOREIGN KEY (idLichSu) REFERENCES LichSuKhaoSat (idLichSu) ON DELETE CASCADE,
-          FOREIGN KEY (idCauHoi) REFERENCES CauHoi (idCauHoi),
-          FOREIGN KEY (idDapAn) REFERENCES DapAn (idDapAn)
+          FOREIGN KEY (idCauHoi) REFERENCES CauHoi (idCauHoi) ON DELETE CASCADE,
+          FOREIGN KEY (idDapAn) REFERENCES DapAn (idDapAn) ON DELETE CASCADE
+      )
+    ''');
+
+    // 8. ViPhanThuong
+    await db.execute('''
+      CREATE TABLE ViPhanThuong (
+          idVi INTEGER PRIMARY KEY AUTOINCREMENT,
+          idTaiKhoan INTEGER,
+          tenKhaoSat NVARCHAR(255),
+          loaiPhanThuong INTEGER,
+          giaTri NVARCHAR(255),
+          ngayNhan TEXT,
+          FOREIGN KEY (idTaiKhoan) REFERENCES TaiKhoan (idTaiKhoan) ON DELETE CASCADE
       )
     ''');
 
