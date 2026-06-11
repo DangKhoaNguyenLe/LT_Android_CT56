@@ -46,8 +46,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
     return Card(
       elevation: 2,
       child: Container(
-        padding: const EdgeInsets.all(14),
-        height: 140,
+        padding: const EdgeInsets.all(12),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -59,13 +58,13 @@ class _StatisticsPageState extends State<StatisticsPage> {
                 fontSize: 14,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Icon(
               icon,
               color: Colors.grey,
-              size: 34,
+              size: 30,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Text(
               value,
               style: const TextStyle(
@@ -159,7 +158,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
           physics: const NeverScrollableScrollPhysics(),
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 1.7,
+          childAspectRatio: 1.3,
           children: [
             buildSummaryCard(
               title: "Tổng số khảo sát",
