@@ -1,14 +1,14 @@
 class Account {
   final int? id; // id có thể null khi tạo mới
-  final String username;
-  final String password;
-  final String hoTen;
-  final String ngaySinh;
-  final int gioiTinh;
-  final String soDienThoai;
-  final String email;
-  final String queQuan;
-  final String role;
+  String username;
+  String password;
+  String hoTen;
+  String ngaySinh;
+  int gioiTinh;
+  String soDienThoai;
+  String email;
+  String queQuan;
+  String role;
 
   Account({
     this.id,

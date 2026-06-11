@@ -56,6 +56,13 @@ class KhaoSat {
   });
 
   String getTrangThaiText() {
+    if (trangThai == TrangThaiKhaoSat.dangMo &&
+        gioiHanNguoiThamGia != null &&
+        gioiHanNguoiThamGia! > 0 &&
+        soNguoiThamGia >= gioiHanNguoiThamGia!) {
+      return "Đã đóng (Đủ SL)";
+    }
+
     switch (trangThai) {
       case TrangThaiKhaoSat.banNhap:
         return "Bản nháp";

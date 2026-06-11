@@ -91,8 +91,15 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
     }
   }
 
-  Color getStatusColor(TrangThaiKhaoSat status) {
-    switch (status) {
+  Color getStatusColor(KhaoSat survey) {
+    if (survey.trangThai == TrangThaiKhaoSat.dangMo &&
+        survey.gioiHanNguoiThamGia != null &&
+        survey.gioiHanNguoiThamGia! > 0 &&
+        survey.soNguoiThamGia >= survey.gioiHanNguoiThamGia!) {
+      return Colors.grey;
+    }
+
+    switch (survey.trangThai) {
       case TrangThaiKhaoSat.banNhap:
         return Colors.orange;
       case TrangThaiKhaoSat.dangMo:
@@ -108,7 +115,7 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: getStatusColor(survey.trangThai),
+          backgroundColor: getStatusColor(survey),
           child: const Icon(Icons.assignment, color: Colors.white),
         ),
         title: Text(

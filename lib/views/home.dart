@@ -29,7 +29,11 @@ class _HomeScreenState extends State<HomeScreen> {
     final allSurveys = await _khaoSatController.getAll();
     List<KhaoSat> result = [];
     for(var survey in allSurveys) {
-      if(survey.trangThai == TrangThaiKhaoSat.dangMo && !(await lichSuController.hasUserCompletedSurvey(currentUserId, survey.id))) {
+      bool isClosedByLimit = (survey.gioiHanNguoiThamGia != null &&
+          survey.gioiHanNguoiThamGia! > 0 &&
+          survey.soNguoiThamGia >= survey.gioiHanNguoiThamGia!);
+
+      if(survey.trangThai == TrangThaiKhaoSat.dangMo && !isClosedByLimit && !(await lichSuController.hasUserCompletedSurvey(currentUserId, survey.id))) {
         result.add(survey);
       }
     }
@@ -97,16 +101,17 @@ class _HomeScreenState extends State<HomeScreen> {
                       separatorBuilder: (context, index) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final survey = _surveys[index];
+
                         return InkWell(
                           onTap: () async {
-                            await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => SurveyDetailScreen(survey: survey, account: widget.account),
-                              ),
-                            );
-                            _loadSurveys();
-                          },
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => SurveyDetailScreen(survey: survey, account: widget.account),
+                                    ),
+                                  );
+                                  _loadSurveys();
+                                },
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(

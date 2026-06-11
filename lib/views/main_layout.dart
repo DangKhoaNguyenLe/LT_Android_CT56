@@ -18,9 +18,16 @@ class MainLayout extends StatefulWidget {
 
 class _MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
+  Key _homeKey = UniqueKey();
+
+  void _reloadHome() {
+    setState(() {
+      _homeKey = UniqueKey();
+    });
+  }
 
   List<Widget> get _pages => [
-    HomeScreen(account: widget.account),
+    HomeScreen(key: _homeKey, account: widget.account),
     WalletScreen(userId: widget.account.id ?? 1),
     ProfileScreen(account: widget.account),
   ];
@@ -35,7 +42,10 @@ class _MainLayoutState extends State<MainLayout> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: _titles[_currentIndex]),
-      drawer: CustomDrawer(account: widget.account),
+      drawer: CustomDrawer(
+        account: widget.account,
+        onReturnFromAdmin: _reloadHome,
+      ),
       body: _pages[_currentIndex],
       bottomNavigationBar: CustomBottomNav(
         currentIndex: _currentIndex,

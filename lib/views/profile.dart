@@ -60,6 +60,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       bool success = await _userController.updateUserInfo(updatedAccount);
       if (success) {
+        // Cập nhật lại đối tượng account trên bộ nhớ (tránh bị lệch dữ liệu)
+        widget.account.hoTen = _hoTenController.text;
+        widget.account.ngaySinh = _ngaySinhController.text;
+        widget.account.gioiTinh = _gioiTinh;
+        widget.account.soDienThoai = _soDienThoaiController.text;
+        widget.account.email = _emailController.text;
+        widget.account.queQuan = _queQuanController.text;
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Cập nhật thông tin thành công')),
@@ -112,11 +120,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
             const SizedBox(height: 16),
             TextFormField(
               controller: _ngaySinhController,
+              readOnly: true,
               decoration: InputDecoration(
                 labelText: 'Ngày sinh (dd/mm/yyyy)',
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 prefixIcon: const Icon(Icons.calendar_today),
               ),
+              onTap: () async {
+                DateTime? picked = await showDatePicker(
+                  context: context,
+                  initialDate: DateTime.now(),
+                  firstDate: DateTime(1900),
+                  lastDate: DateTime.now(),
+                );
+                if (picked != null) {
+                  setState(() {
+                    _ngaySinhController.text = "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
+                  });
+                }
+              },
+              validator: (value) => value == null || value.trim().isEmpty ? 'Vui lòng chọn ngày sinh' : null,
             ),
             const SizedBox(height: 16),
             DropdownButtonFormField<int>(
@@ -145,6 +168,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 prefixIcon: const Icon(Icons.phone),
               ),
               keyboardType: TextInputType.phone,
+              validator: (value) => value == null || value.trim().isEmpty ? 'Vui lòng nhập số điện thoại' : null,
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -155,6 +179,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 prefixIcon: const Icon(Icons.email),
               ),
               keyboardType: TextInputType.emailAddress,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) return 'Vui lòng nhập email';
+                if (!value.contains('@')) return 'Email không hợp lệ';
+                return null;
+              },
             ),
             const SizedBox(height: 16),
             TextFormField(
@@ -164,6 +193,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
                 prefixIcon: const Icon(Icons.location_on),
               ),
+              validator: (value) => value == null || value.trim().isEmpty ? 'Vui lòng nhập quê quán' : null,
             ),
             const SizedBox(height: 32),
             SizedBox(

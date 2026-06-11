@@ -1,5 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-
+import 'package:image_picker/image_picker.dart';
 import '../../models/khao_sat.dart';
 import '../../models/cau_hoi.dart';
 import '../../models/dap_an.dart';
@@ -24,29 +25,50 @@ class _AddQuestionPageState extends State<AddQuestionPage> {
   String? hinhAnh;
 
   List<TextEditingController> dapAnControllers = [];
+  List<String?> dapAnImages = [];
 
   void addAnswer() {
     setState(() {
       dapAnControllers.add(TextEditingController());
+      dapAnImages.add(null);
     });
   }
 
   void removeAnswer(int index) {
     setState(() {
       dapAnControllers.removeAt(index);
+      dapAnImages.removeAt(index);
     });
   }
 
-  void chooseQuestionImage() {
-    setState(() {
-      hinhAnh = "Đã chọn ảnh cho câu hỏi";
-    });
+  Future<void> chooseQuestionImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        hinhAnh = pickedFile.path;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Đã chọn ảnh minh họa cho câu hỏi")),
+        );
+      }
+    }
+  }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text("Đã chọn ảnh minh họa cho câu hỏi"),
-      ),
-    );
+  Future<void> chooseAnswerImage(int index) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        dapAnImages[index] = pickedFile.path;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Đã chọn ảnh cho đáp án ${index + 1}")),
+        );
+      }
+    }
   }
 
   void saveQuestion() {
@@ -75,6 +97,7 @@ class _AddQuestionPageState extends State<AddQuestionPage> {
             (index) => DapAn(
               id: index + 1,
               noiDung: dapAnControllers[index].text.trim(),
+              hinhAnh: dapAnImages[index],
             ),
           )
         : <DapAn>[];
@@ -116,14 +139,8 @@ class _AddQuestionPageState extends State<AddQuestionPage> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.image, color: Color(0xff08aff0)),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text("Đã chọn ảnh cho đáp án ${index + 1}"),
-                ),
-              );
-            },
+            icon: Icon(Icons.image, color: dapAnImages[index] != null ? Colors.green : const Color(0xff08aff0)),
+            onPressed: () => chooseAnswerImage(index),
           ),
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.red),
@@ -186,10 +203,12 @@ class _AddQuestionPageState extends State<AddQuestionPage> {
                     dapAnControllers.isEmpty) {
                   dapAnControllers.add(TextEditingController());
                   dapAnControllers.add(TextEditingController());
+                  dapAnImages.addAll([null, null]);
                 }
 
                 if (loaiCauHoi == LoaiCauHoi.tuLuan) {
                   dapAnControllers.clear();
+                  dapAnImages.clear();
                 }
               });
             },
@@ -214,14 +233,35 @@ class _AddQuestionPageState extends State<AddQuestionPage> {
             label: const Text("Tải ảnh cho câu hỏi"),
           ),
 
-          if (hinhAnh != null)
-            Text(
-              hinhAnh!,
-              style: const TextStyle(
-                color: Colors.green,
-                fontSize: 12,
+          if (hinhAnh != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              height: 150,
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.grey),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.file(
+                  File(hinhAnh!),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => const Center(
+                    child: Text('Không thể hiển thị ảnh', style: TextStyle(color: Colors.red)),
+                  ),
+                ),
               ),
             ),
+            TextButton.icon(
+              onPressed: () {
+                setState(() {
+                  hinhAnh = null;
+                });
+              },
+              icon: const Icon(Icons.delete, color: Colors.red),
+              label: const Text("Xóa ảnh", style: TextStyle(color: Colors.red)),
+            )
+          ],
 
           if (isMultipleChoice) ...[
             const SizedBox(height: 16),

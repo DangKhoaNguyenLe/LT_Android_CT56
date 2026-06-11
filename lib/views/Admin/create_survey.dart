@@ -1,5 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-
+import 'package:image_picker/image_picker.dart';
 import '../../models/cau_hoi.dart';
 import '../../models/dap_an.dart';
 
@@ -46,11 +47,11 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
     });
   }
 
-  void changeQuestionType(int index, String type) {
-    setState(() {
-      final cauHoi = cauHois[index];
+  Future<void> changeQuestionType(int index, String type) async {
+    final cauHoi = cauHois[index];
 
-      if (type == "trac_nghiem") {
+    if (type == "trac_nghiem") {
+      setState(() {
         cauHoi.loaiCauHoi = LoaiCauHoi.tracNghiem;
         cauHoi.hinhAnh = null;
 
@@ -60,32 +61,39 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
             DapAn(id: 2, noiDung: ""),
           ];
         }
-      }
+      });
+    }
 
-      if (type == "text") {
+    if (type == "text") {
+      setState(() {
         cauHoi.loaiCauHoi = LoaiCauHoi.tuLuan;
         cauHoi.hinhAnh = null;
         cauHoi.dapAns.clear();
-      }
+      });
+    }
 
-      if (type == "anh") {
-        cauHoi.loaiCauHoi = LoaiCauHoi.tuLuan;
-        cauHoi.hinhAnh = "question_image";
-        cauHoi.dapAns.clear();
+    if (type == "anh" || type == "trac_nghiem_anh") {
+      final picker = ImagePicker();
+      final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+      
+      if (pickedFile != null) {
+        setState(() {
+          cauHoi.loaiCauHoi = type == "anh" ? LoaiCauHoi.tuLuan : LoaiCauHoi.tracNghiem;
+          cauHoi.hinhAnh = pickedFile.path;
+          
+          if (type == "anh") {
+            cauHoi.dapAns.clear();
+          } else {
+            if (cauHoi.dapAns.length < 2) {
+              cauHoi.dapAns = [
+                DapAn(id: 1, noiDung: ""),
+                DapAn(id: 2, noiDung: ""),
+              ];
+            }
+          }
+        });
       }
-
-      if (type == "trac_nghiem_anh") {
-        cauHoi.loaiCauHoi = LoaiCauHoi.tracNghiem;
-        cauHoi.hinhAnh = "question_image";
-
-        if (cauHoi.dapAns.length < 2) {
-          cauHoi.dapAns = [
-            DapAn(id: 1, noiDung: ""),
-            DapAn(id: 2, noiDung: ""),
-          ];
-        }
-      }
-    });
+    }
   }
 
   void addOption(int questionIndex) {
@@ -289,8 +297,8 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
                 ),
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert, color: Colors.black),
-                  onSelected: (value) {
-                    changeQuestionType(index, value);
+                  onSelected: (value) async {
+                    await changeQuestionType(index, value);
                   },
                   itemBuilder: (context) => const [
                     PopupMenuItem(
@@ -357,15 +365,21 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
               const SizedBox(height: 10),
               Container(
                 width: double.infinity,
-                height: 100,
-                alignment: Alignment.center,
+                height: 150,
                 decoration: BoxDecoration(
                   color: const Color(0xffe8eef2),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.grey),
                 ),
-                child: const Text(
-                  "Ảnh minh họa câu hỏi",
-                  style: TextStyle(color: Colors.black87),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: Image.file(
+                    File(cauHoi.hinhAnh!),
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => const Center(
+                      child: Text('Không thể hiển thị ảnh', style: TextStyle(color: Colors.red)),
+                    ),
+                  ),
                 ),
               ),
             ],

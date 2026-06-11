@@ -4,6 +4,8 @@ import '../../controllers/khao_sat_controller.dart';
 import '../../models/cau_hoi.dart';
 import '../../models/khao_sat.dart';
 import '../../models/danh_muc.dart';
+import '../../models/danh_muc_phan_thuong.dart';
+import '../../controllers/danh_muc_phan_thuong_controller.dart';
 import '../../utils/app_text.dart';
 
 import 'survey_preview.dart';
@@ -26,8 +28,10 @@ class SurveySetupPage extends StatefulWidget {
 
 class _SurveySetupPageState extends State<SurveySetupPage> {
   final KhaoSatController controller = KhaoSatController();
+  final DanhMucPhanThuongController _rewardController = DanhMucPhanThuongController();
 
   List<DanhMuc> danhMucs = [];
+  List<DanhMucPhanThuong> rewardTemplates = [];
   bool isLoading = true;
 
   @override
@@ -38,8 +42,10 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
 
   Future<void> _loadData() async {
     final list = await controller.getDanhMucList();
+    final rewards = await _rewardController.getAll();
     setState(() {
       danhMucs = list;
+      rewardTemplates = rewards;
       isLoading = false;
     });
   }
@@ -48,10 +54,7 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
   final TextEditingController gioiHanController = TextEditingController();
 
   DanhMuc? selectedDanhMuc;
-
-  LoaiPhanThuong selectedReward = LoaiPhanThuong.khongCo;
-  String? selectedRewardValue;
-  bool isCustomReward = false;
+  DanhMucPhanThuong? selectedRewardTemplate;
 
   DateTime? ngayBatDau;
   DateTime? ngayKetThuc;
@@ -91,84 +94,13 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
     return "${date.day}/${date.month}/${date.year}";
   }
 
-  List<String> getRewardOptions() {
-    switch (selectedReward) {
-      case LoaiPhanThuong.voucher:
-        return [
-          "Voucher 10.000đ",
-          "Voucher 20.000đ",
-          "Voucher 50.000đ",
-          "Free shipping voucher",
-          T.text("customVoucher"),
-        ];
-
-      case LoaiPhanThuong.tienMat:
-        return [
-          "5.000đ",
-          "10.000đ",
-          "20.000đ",
-          "50.000đ",
-          T.text("customCash"),
-        ];
-
-      case LoaiPhanThuong.diemTichLuy:
-        return [
-          "10 points",
-          "20 points",
-          "50 points",
-          "100 points",
-          T.text("customPoint"),
-        ];
-
-      case LoaiPhanThuong.khongCo:
-        return [];
+  String getRewardTypeString(LoaiPhanThuong type) {
+    switch (type) {
+      case LoaiPhanThuong.voucher: return T.text("voucher");
+      case LoaiPhanThuong.tienMat: return T.text("cash");
+      case LoaiPhanThuong.diemTichLuy: return T.text("point");
+      case LoaiPhanThuong.khongCo: return T.text("noReward");
     }
-  }
-
-  String getCustomRewardLabel() {
-    switch (selectedReward) {
-      case LoaiPhanThuong.voucher:
-        return T.text("enterVoucher");
-      case LoaiPhanThuong.tienMat:
-        return T.text("enterCash");
-      case LoaiPhanThuong.diemTichLuy:
-        return T.text("enterPoint");
-      case LoaiPhanThuong.khongCo:
-        return T.text("rewardValue");
-    }
-  }
-
-  String getCustomRewardHint() {
-    switch (selectedReward) {
-      case LoaiPhanThuong.voucher:
-        return T.text("voucherHint");
-      case LoaiPhanThuong.tienMat:
-        return T.text("cashHint");
-      case LoaiPhanThuong.diemTichLuy:
-        return T.text("pointHint");
-      case LoaiPhanThuong.khongCo:
-        return "";
-    }
-  }
-
-  bool checkIsCustomReward(String? value) {
-    return value == T.text("customVoucher") ||
-        value == T.text("customCash") ||
-        value == T.text("customPoint");
-  }
-
-  String? getFinalRewardValue() {
-    if (selectedReward == LoaiPhanThuong.khongCo) {
-      return null;
-    }
-
-    if (isCustomReward) {
-      return phanThuongController.text.trim().isEmpty
-          ? null
-          : phanThuongController.text.trim();
-    }
-
-    return selectedRewardValue;
   }
 
   Future<KhaoSat> buildSurvey(TrangThaiKhaoSat status) async {
@@ -181,8 +113,8 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
       ngayKetThuc: ngayKetThuc,
       danhMuc: selectedDanhMuc,
       trangThai: status,
-      loaiPhanThuong: selectedReward,
-      giaTriPhanThuong: getFinalRewardValue(),
+      loaiPhanThuong: selectedRewardTemplate?.loaiPhanThuong ?? LoaiPhanThuong.khongCo,
+      giaTriPhanThuong: selectedRewardTemplate?.giaTri,
       gioiHanNguoiThamGia: gioiHanController.text.trim().isEmpty
           ? null
           : int.tryParse(gioiHanController.text.trim()),
@@ -285,8 +217,8 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
   Widget buildRewardSection() {
     return Column(
       children: [
-        DropdownButtonFormField<LoaiPhanThuong>(
-          value: selectedReward,
+        DropdownButtonFormField<DanhMucPhanThuong?>(
+          value: selectedRewardTemplate,
           decoration: InputDecoration(
             labelText: T.text("rewardType"),
             filled: true,
@@ -295,82 +227,22 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
           ),
           items: [
             DropdownMenuItem(
-              value: LoaiPhanThuong.khongCo,
+              value: null,
               child: Text(T.text("noReward")),
             ),
-            DropdownMenuItem(
-              value: LoaiPhanThuong.voucher,
-              child: Text(T.text("voucher")),
-            ),
-            DropdownMenuItem(
-              value: LoaiPhanThuong.tienMat,
-              child: Text(T.text("cash")),
-            ),
-            DropdownMenuItem(
-              value: LoaiPhanThuong.diemTichLuy,
-              child: Text(T.text("point")),
-            ),
+            ...rewardTemplates.map((template) {
+              return DropdownMenuItem(
+                value: template,
+                child: Text("${template.tenPhanThuong} (${template.giaTri})"),
+              );
+            }).toList(),
           ],
           onChanged: (value) {
             setState(() {
-              selectedReward = value!;
-              selectedRewardValue = null;
-              isCustomReward = false;
-              phanThuongController.clear();
+              selectedRewardTemplate = value;
             });
           },
         ),
-
-        if (selectedReward != LoaiPhanThuong.khongCo) ...[
-          const SizedBox(height: 12),
-
-          DropdownButtonFormField<String>(
-            value: selectedRewardValue,
-            decoration: InputDecoration(
-              labelText: T.text("rewardValue"),
-              filled: true,
-              fillColor: Colors.white,
-              border: const OutlineInputBorder(),
-            ),
-            items: getRewardOptions().map((item) {
-              return DropdownMenuItem(
-                value: item,
-                child: Text(item),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedRewardValue = value;
-                isCustomReward = checkIsCustomReward(value);
-
-                if (isCustomReward) {
-                  phanThuongController.clear();
-                } else {
-                  phanThuongController.text = value ?? "";
-                }
-              });
-            },
-          ),
-
-          if (isCustomReward) ...[
-            const SizedBox(height: 12),
-
-            TextField(
-              controller: phanThuongController,
-              keyboardType: selectedReward == LoaiPhanThuong.tienMat ||
-                      selectedReward == LoaiPhanThuong.diemTichLuy
-                  ? TextInputType.number
-                  : TextInputType.text,
-              decoration: InputDecoration(
-                labelText: getCustomRewardLabel(),
-                hintText: getCustomRewardHint(),
-                filled: true,
-                fillColor: Colors.white,
-                border: const OutlineInputBorder(),
-              ),
-            ),
-          ],
-        ],
       ],
     );
   }

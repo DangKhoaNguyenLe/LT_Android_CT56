@@ -10,6 +10,7 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -68,6 +69,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               const SizedBox(height: 32),
+
+              // Trường Tên đăng nhập
+              _buildLabel('Tên đăng nhập'),
+              _buildTextField(
+                controller: _usernameController,
+                hintText: 'Nhập tên đăng nhập',
+                icon: Icons.account_circle_outlined,
+              ),
+              const SizedBox(height: 20),
 
               // Trường Họ và Tên
               _buildLabel('Họ và tên'),
@@ -153,14 +163,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
               ElevatedButton(
                 onPressed: () async {
+                  String username = _usernameController.text.trim();
                   String name = _nameController.text.trim();
                   String email = _emailController.text.trim();
                   String password = _passwordController.text.trim();
                   String confirmPassword = _confirmPasswordController.text.trim();
 
-                  if (name.isEmpty || email.isEmpty || password.isEmpty) {
+                  if (username.isEmpty || name.isEmpty || email.isEmpty || password.isEmpty) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(content: Text('Vui lòng điền đầy đủ thông tin')),
+                    );
+                    return;
+                  }
+
+                  if (!email.contains('@')) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Email không hợp lệ')),
                     );
                     return;
                   }
@@ -179,9 +197,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return;
                   }
 
-                  // Khởi tạo Object Account (với username tạm lấy từ email)
+                  // Khởi tạo Object Account
                   Account newAccount = Account(
-                    username: email, 
+                    username: username, 
                     password: password,
                     hoTen: name,
                     ngaySinh: '',
@@ -343,6 +361,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   void dispose() {
+    _usernameController.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();

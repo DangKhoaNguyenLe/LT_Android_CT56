@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 
 import '../../controllers/khao_sat_controller.dart';
 import '../../models/khao_sat.dart';
+import '../../models/khao_sat.dart';
 import '../../models/danh_muc.dart';
+import '../../models/danh_muc_phan_thuong.dart';
+import '../../controllers/danh_muc_phan_thuong_controller.dart';
 
 class EditSurveyPage extends StatefulWidget {
   final KhaoSat khaoSat;
@@ -18,20 +21,21 @@ class EditSurveyPage extends StatefulWidget {
 
 class _EditSurveyPageState extends State<EditSurveyPage> {
   final KhaoSatController controller = KhaoSatController();
+  final DanhMucPhanThuongController _rewardController = DanhMucPhanThuongController();
 
   late TextEditingController tenController;
   late TextEditingController moTaController;
-  late TextEditingController phanThuongController;
   late TextEditingController gioiHanController;
 
   DanhMuc? selectedDanhMuc;
-  LoaiPhanThuong selectedReward = LoaiPhanThuong.khongCo;
+  DanhMucPhanThuong? selectedRewardTemplate;
   TrangThaiKhaoSat selectedStatus = TrangThaiKhaoSat.banNhap;
 
   DateTime? ngayBatDau;
   DateTime? ngayKetThuc;
 
   List<DanhMuc> danhMucs = [];
+  List<DanhMucPhanThuong> rewardTemplates = [];
   bool isLoading = true;
 
   @override
@@ -40,14 +44,11 @@ class _EditSurveyPageState extends State<EditSurveyPage> {
 
     tenController = TextEditingController(text: widget.khaoSat.tenKhaoSat);
     moTaController = TextEditingController(text: widget.khaoSat.moTa);
-    phanThuongController =
-        TextEditingController(text: widget.khaoSat.giaTriPhanThuong ?? "");
     gioiHanController = TextEditingController(
       text: widget.khaoSat.gioiHanNguoiThamGia?.toString() ?? "",
     );
 
     selectedDanhMuc = widget.khaoSat.danhMuc;
-    selectedReward = widget.khaoSat.loaiPhanThuong;
     selectedStatus = widget.khaoSat.trangThai;
     ngayBatDau = widget.khaoSat.ngayBatDau;
     ngayKetThuc = widget.khaoSat.ngayKetThuc;
@@ -57,8 +58,21 @@ class _EditSurveyPageState extends State<EditSurveyPage> {
 
   Future<void> _loadData() async {
     final list = await controller.getDanhMucList();
+    final rewards = await _rewardController.getAll();
+    
+    // Tìm template tương ứng với phần thưởng hiện tại
+    DanhMucPhanThuong? matchTemplate;
+    for (var r in rewards) {
+      if (r.loaiPhanThuong == widget.khaoSat.loaiPhanThuong && r.giaTri == widget.khaoSat.giaTriPhanThuong) {
+        matchTemplate = r;
+        break;
+      }
+    }
+
     setState(() {
       danhMucs = list;
+      rewardTemplates = rewards;
+      selectedRewardTemplate = matchTemplate;
       isLoading = false;
     });
   }
@@ -105,11 +119,9 @@ class _EditSurveyPageState extends State<EditSurveyPage> {
     widget.khaoSat.trangThai = selectedStatus;
     widget.khaoSat.ngayBatDau = ngayBatDau;
     widget.khaoSat.ngayKetThuc = ngayKetThuc;
-    widget.khaoSat.loaiPhanThuong = selectedReward;
-    widget.khaoSat.giaTriPhanThuong =
-        phanThuongController.text.trim().isEmpty
-            ? null
-            : phanThuongController.text.trim();
+    widget.khaoSat.ngayKetThuc = ngayKetThuc;
+    widget.khaoSat.loaiPhanThuong = selectedRewardTemplate?.loaiPhanThuong ?? LoaiPhanThuong.khongCo;
+    widget.khaoSat.giaTriPhanThuong = selectedRewardTemplate?.giaTri;
     widget.khaoSat.gioiHanNguoiThamGia =
         gioiHanController.text.trim().isEmpty
             ? null
@@ -242,50 +254,33 @@ class _EditSurveyPageState extends State<EditSurveyPage> {
             ],
           ),
           const SizedBox(height: 12),
-          DropdownButtonFormField<LoaiPhanThuong>(
-            value: selectedReward,
+          const SizedBox(height: 12),
+          DropdownButtonFormField<DanhMucPhanThuong?>(
+            value: selectedRewardTemplate,
             decoration: const InputDecoration(
               labelText: "Loại phần thưởng",
               filled: true,
               fillColor: Colors.white,
               border: OutlineInputBorder(),
             ),
-            items: const [
-              DropdownMenuItem(
-                value: LoaiPhanThuong.khongCo,
+            items: [
+              const DropdownMenuItem(
+                value: null,
                 child: Text("Không có"),
               ),
-              DropdownMenuItem(
-                value: LoaiPhanThuong.voucher,
-                child: Text("Voucher"),
-              ),
-              DropdownMenuItem(
-                value: LoaiPhanThuong.tienMat,
-                child: Text("Tiền mặt"),
-              ),
-              DropdownMenuItem(
-                value: LoaiPhanThuong.diemTichLuy,
-                child: Text("Điểm tích lũy"),
-              ),
+              ...rewardTemplates.map((template) {
+                return DropdownMenuItem(
+                  value: template,
+                  child: Text("${template.tenPhanThuong} (${template.giaTri})"),
+                );
+              }).toList(),
             ],
             onChanged: (value) {
               setState(() {
-                selectedReward = value!;
+                selectedRewardTemplate = value;
               });
             },
           ),
-          if (selectedReward != LoaiPhanThuong.khongCo) ...[
-            const SizedBox(height: 12),
-            TextField(
-              controller: phanThuongController,
-              decoration: const InputDecoration(
-                labelText: "Giá trị phần thưởng",
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(),
-              ),
-            ),
-          ],
           const SizedBox(height: 12),
           TextField(
             controller: gioiHanController,

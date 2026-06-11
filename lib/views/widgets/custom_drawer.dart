@@ -8,8 +8,9 @@ import '../profile.dart';
 
 class CustomDrawer extends StatelessWidget {
   final Account account;
+  final VoidCallback? onReturnFromAdmin;
 
-  const CustomDrawer({super.key, required this.account});
+  const CustomDrawer({super.key, required this.account, this.onReturnFromAdmin});
 
   @override
   Widget build(BuildContext context) {
@@ -79,9 +80,13 @@ class CustomDrawer extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const AdminDashboard(),
+                      builder: (context) => AdminDashboard(account: account),
                     ),
-                  );
+                  ).then((_) {
+                    if (onReturnFromAdmin != null) {
+                      onReturnFromAdmin!();
+                    }
+                  });
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.redAccent,

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/khao_sat.dart';
 import '../models/cau_hoi.dart';
@@ -80,6 +81,7 @@ class _DoSurveyScreenState extends State<DoSurveyScreen> {
     // Cập nhật số liệu cho khảo sát
     widget.survey.soHoanThanh++;
     widget.survey.soPhanHoi++;
+    widget.survey.soNguoiThamGia++;
     await KhaoSatController().updateSurveyInfoOnly(widget.survey);
 
     // Lưu phần thưởng nếu có
@@ -140,11 +142,41 @@ class _DoSurveyScreenState extends State<DoSurveyScreen> {
                     'Câu ${index + 1}: ${cauHoi.noiDung} ${cauHoi.batBuoc ? "(*)" : ""}',
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
+                  if (cauHoi.hinhAnh != null) ...[
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.file(
+                        File(cauHoi.hinhAnh!),
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Text('Lỗi ảnh', style: TextStyle(color: Colors.red)),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 12),
                   if (cauHoi.loaiCauHoi == LoaiCauHoi.tracNghiem)
                     ...cauHoi.dapAns.map((dapAn) {
                       return RadioListTile<int>(
-                        title: Text(dapAn.noiDung),
+                        title: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(dapAn.noiDung),
+                            if (dapAn.hinhAnh != null) ...[
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  File(dapAn.hinhAnh!),
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Text('Lỗi ảnh', style: TextStyle(color: Colors.red)),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
                         value: dapAn.id,
                         groupValue: _selectedAnswers[cauHoi.id],
                         onChanged: (value) {

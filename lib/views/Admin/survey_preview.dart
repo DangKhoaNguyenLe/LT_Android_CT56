@@ -1,5 +1,5 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
-
 import '../../models/khao_sat.dart';
 import '../../models/cau_hoi.dart';
 
@@ -48,15 +48,21 @@ class SurveyPreviewPage extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 6),
                 child: Container(
                   width: double.infinity,
-                  height: 90,
-                  alignment: Alignment.center,
+                  height: 150,
                   decoration: BoxDecoration(
                     color: const Color(0xffe8eef2),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey),
                   ),
-                  child: const Text(
-                    "Ảnh minh họa câu hỏi",
-                    style: TextStyle(color: Colors.black87),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.file(
+                      File(cauHoi.hinhAnh!),
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => const Center(
+                        child: Text('Không thể hiển thị ảnh', style: TextStyle(color: Colors.red)),
+                      ),
+                    ),
                   ),
                 ),
               ),
@@ -69,11 +75,29 @@ class SurveyPreviewPage extends StatelessWidget {
                   value: i,
                   groupValue: null,
                   onChanged: null,
-                  title: Text(
-                    cauHoi.dapAns[i].noiDung.isEmpty
-                        ? "Đáp án ${i + 1}"
-                        : cauHoi.dapAns[i].noiDung,
-                    style: const TextStyle(color: Colors.black),
+                  title: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        cauHoi.dapAns[i].noiDung.isEmpty
+                            ? "Đáp án ${i + 1}"
+                            : cauHoi.dapAns[i].noiDung,
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                      if (cauHoi.dapAns[i].hinhAnh != null) ...[
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            File(cauHoi.dapAns[i].hinhAnh!),
+                            height: 100,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Text('Lỗi ảnh', style: TextStyle(color: Colors.red)),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 );
               })
