@@ -105,7 +105,7 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
 
   Future<KhaoSat> buildSurvey(TrangThaiKhaoSat status) async {
     return KhaoSat(
-      id: await controller.generateSurveyId(),
+      id: 0,
       tenKhaoSat: widget.tenKhaoSat,
       moTa: widget.moTa,
       ngayTao: DateTime.now(),
