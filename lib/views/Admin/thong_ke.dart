@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../controllers/thong_ke_controller.dart';
 import '../../models/khao_sat.dart';
-import 'survey_statistics_detail.dart';
+import 'chi_tiet_thong_ke_khao_sat.dart';
 
 class StatisticsPage extends StatefulWidget {
   const StatisticsPage({super.key});

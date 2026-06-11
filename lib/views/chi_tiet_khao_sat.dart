@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/khao_sat.dart';
-import 'do_survey.dart';
+import 'lam_khao_sat.dart';
 import '../controllers/lich_su_controller.dart';
 
 import '../models/account.dart';

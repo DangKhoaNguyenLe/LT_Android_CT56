@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/khao_sat_controller.dart';
 import '../controllers/lich_su_controller.dart';
-import 'survey_detail.dart';
+import 'chi_tiet_khao_sat.dart';
 import '../models/khao_sat.dart';
 import '../models/account.dart';
 

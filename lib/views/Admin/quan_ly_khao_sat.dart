@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import '../../controllers/khao_sat_controller.dart';
 import '../../models/khao_sat.dart';
 
-import 'create_survey.dart';
-import 'survey_preview.dart';
+import 'tao_khao_sat.dart';
+import 'xem_truoc_khao_sat.dart';
 
 class ManageSurveyPage extends StatefulWidget {
   const ManageSurveyPage({super.key});

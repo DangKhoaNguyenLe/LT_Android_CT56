@@ -3,17 +3,17 @@ import '../../controllers/khao_sat_controller.dart';
 import '../../controllers/UserController.dart';
 import '../../models/khao_sat.dart';
 
-import 'manage_survey.dart';
-import 'create_survey.dart';
-import 'profile_page.dart';
-import '../login.dart';
-import 'statistics.dart';
-import 'manage_user.dart';
-import 'manage_category.dart';
-import 'manage_reward.dart';
-import 'survey_preview.dart';
-import '../home.dart';
-import '../profile.dart';
+import 'quan_ly_khao_sat.dart';
+import 'tao_khao_sat.dart';
+import 'trang_ho_so.dart';
+import '../dang_nhap.dart';
+import 'thong_ke.dart';
+import 'quan_ly_nguoi_dung.dart';
+import 'quan_ly_danh_muc.dart';
+import 'quan_ly_phan_thuong.dart';
+import 'xem_truoc_khao_sat.dart';
+import '../trang_chu.dart';
+import '../ho_so.dart';
 import '../../models/account.dart';
 
 class AdminDashboard extends StatefulWidget {

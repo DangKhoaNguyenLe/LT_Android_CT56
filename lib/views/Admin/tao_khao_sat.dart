@@ -5,7 +5,7 @@ import '../../models/cau_hoi.dart';
 import '../../models/dap_an.dart';
 import '../../models/khao_sat.dart';
 
-import 'survey_setup_page.dart';
+import 'cai_dat_khao_sat.dart';
 
 class CreateSurveyPage extends StatefulWidget {
   final KhaoSat? existingSurvey;

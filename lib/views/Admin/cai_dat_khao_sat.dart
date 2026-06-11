@@ -8,7 +8,7 @@ import '../../models/danh_muc_phan_thuong.dart';
 import '../../controllers/danh_muc_phan_thuong_controller.dart';
 import '../../utils/app_text.dart';
 
-import 'survey_preview.dart';
+import 'xem_truoc_khao_sat.dart';
 
 class SurveySetupPage extends StatefulWidget {
   final KhaoSat? existingSurvey;

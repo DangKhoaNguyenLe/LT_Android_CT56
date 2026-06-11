@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'widgets/custom_app_bar.dart';
-import 'widgets/custom_bottom_nav.dart';
-import 'widgets/custom_drawer.dart';
+import 'widgets/thanh_tieu_de.dart';
+import 'widgets/thanh_dieu_huong.dart';
+import 'widgets/menu_ben.dart';
 import '../models/account.dart';
-import 'home.dart';
-import 'profile.dart';
-import 'wallet.dart';
+import 'trang_chu.dart';
+import 'ho_so.dart';
+import 'vi_tien.dart';
 
 class MainLayout extends StatefulWidget {
   final Account account;

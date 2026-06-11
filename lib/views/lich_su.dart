@@ -3,7 +3,7 @@ import '../controllers/lich_su_controller.dart';
 import '../controllers/khao_sat_controller.dart';
 import '../models/lich_su_khao_sat.dart';
 import '../models/khao_sat.dart';
-import 'history_detail.dart';
+import 'chi_tiet_lich_su_view.dart';
 import '../models/account.dart';
 
 class HistoryScreen extends StatefulWidget {

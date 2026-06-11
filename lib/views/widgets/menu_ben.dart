@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/account.dart';
-import '../login.dart';
-import '../Admin/admin_dashboard.dart';
-import '../history.dart';
-import '../profile.dart';
+import '../dang_nhap.dart';
+import '../Admin/bang_dieu_khien_admin.dart';
+import '../lich_su.dart';
+import '../ho_so.dart';
 
 class CustomDrawer extends StatelessWidget {
   final Account account;
