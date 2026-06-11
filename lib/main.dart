@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_application_appkhaosat/views/login.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'dart:io';
-import 'utils/app_state.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,41 +18,23 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ValueListenableBuilder<ThemeMode>(
-      valueListenable: AppState.themeMode,
-      builder: (context, themeMode, child) {
-        return MaterialApp(
-          title: 'Khảo Sát App',
-          debugShowCheckedModeBanner: false,
-          themeMode: themeMode,
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-            brightness: Brightness.light,
-            scaffoldBackgroundColor: const Color(0xffd9d9d9),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xff08aff0),
-              foregroundColor: Colors.black,
-            ),
-            floatingActionButtonTheme: const FloatingActionButtonThemeData(
-              backgroundColor: Color(0xff08aff0),
-              foregroundColor: Colors.black,
-            ),
-          ),
-          darkTheme: ThemeData(
-            brightness: Brightness.dark,
-            scaffoldBackgroundColor: const Color(0xff202020),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Color(0xff0b92d1),
-              foregroundColor: Colors.white,
-            ),
-            floatingActionButtonTheme: const FloatingActionButtonThemeData(
-              backgroundColor: Color(0xff0b92d1),
-              foregroundColor: Colors.white,
-            ),
-          ),
-          home: const LoginScreen(),
-        );
-      },
+    return MaterialApp(
+      title: 'Khảo Sát App',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: const Color(0xffd9d9d9),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: Color(0xff08aff0),
+          foregroundColor: Colors.black,
+        ),
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
+          backgroundColor: Color(0xff08aff0),
+          foregroundColor: Colors.black,
+        ),
+      ),
+      home: const LoginScreen(),
     );
   }
 }

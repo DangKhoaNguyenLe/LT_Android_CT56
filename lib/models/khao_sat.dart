@@ -55,12 +55,27 @@ class KhaoSat {
     this.soNguoiThamGia = 0,
   });
 
+  bool isClosedByTime() {
+    if (ngayKetThuc != null) {
+      DateTime endOfEndDate = DateTime(
+          ngayKetThuc!.year, ngayKetThuc!.month, ngayKetThuc!.day, 23, 59, 59);
+      if (DateTime.now().isAfter(endOfEndDate)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   String getTrangThaiText() {
     if (trangThai == TrangThaiKhaoSat.dangMo &&
         gioiHanNguoiThamGia != null &&
         gioiHanNguoiThamGia! > 0 &&
         soNguoiThamGia >= gioiHanNguoiThamGia!) {
       return "Đã đóng (Đủ SL)";
+    }
+
+    if (trangThai == TrangThaiKhaoSat.dangMo && isClosedByTime()) {
+      return "Đã đóng (Hết hạn)";
     }
 
     switch (trangThai) {

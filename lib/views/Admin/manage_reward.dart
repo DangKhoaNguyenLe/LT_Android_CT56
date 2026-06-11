@@ -206,7 +206,7 @@ class _ManageRewardScreenState extends State<ManageRewardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      
       appBar: AppBar(
         title: const Text('Quản lý mẫu phần thưởng'),
         backgroundColor: const Color(0xFF0EA5E9),

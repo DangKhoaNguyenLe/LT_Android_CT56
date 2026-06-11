@@ -231,7 +231,6 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
 
   Widget buildTitleCard() {
     return Card(
-      color: Colors.white,
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(10),
@@ -269,7 +268,6 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
     final cauHoi = cauHois[index];
 
     return Card(
-      color: Colors.white,
       elevation: 2,
       margin: const EdgeInsets.only(bottom: 14),
       shape: RoundedRectangleBorder(
@@ -469,7 +467,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffd9d9d9),
+      
       appBar: AppBar(
         title: const Text("Tạo khảo sát"),
         centerTitle: true,

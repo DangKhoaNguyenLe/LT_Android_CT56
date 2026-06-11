@@ -71,7 +71,7 @@ class _WalletScreenState extends State<WalletScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6),
+      
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _rewards.isEmpty

@@ -7,7 +7,6 @@ import '../../models/khao_sat.dart';
 import 'manage_survey.dart';
 import 'create_survey.dart';
 import 'profile_page.dart';
-import 'setting_page.dart';
 import '../login.dart';
 import 'statistics.dart';
 import 'manage_user.dart';
@@ -109,17 +108,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     refreshData();
   }
 
-  Future<void> openSetting() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const SettingPage(),
-      ),
-    );
-
-    setState(() {});
-  }
-
   void openStatistics() {
     Navigator.push(
       context,
@@ -146,6 +134,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
       return Colors.grey;
     }
 
+    if (survey.trangThai == TrangThaiKhaoSat.dangMo && survey.isClosedByTime()) {
+      return Colors.grey;
+    }
+
     switch (survey.trangThai) {
       case TrangThaiKhaoSat.banNhap:
         return Colors.orange;
@@ -162,6 +154,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
         survey.gioiHanNguoiThamGia! > 0 &&
         survey.soNguoiThamGia >= survey.gioiHanNguoiThamGia!) {
       return "Đã đủ SL";
+    }
+
+    if (survey.trangThai == TrangThaiKhaoSat.dangMo && survey.isClosedByTime()) {
+      return "Hết hạn";
     }
 
     switch (survey.trangThai) {
@@ -294,14 +290,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
             },
           ),
 
-          ListTile(
-            leading: const Icon(Icons.settings),
-            title: const Text("Cài đặt"),
-            onTap: () {
-              Navigator.pop(context);
-              openSetting();
-            },
-          ),
 
           const Spacer(),
 
@@ -352,7 +340,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
           );
         },
         child: Card(
-          color: Colors.white,
           margin: const EdgeInsets.only(bottom: 14),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),

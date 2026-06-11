@@ -181,7 +181,6 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
 
   Widget buildSurveyInfoCard() {
     return Card(
-      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(14),
         child: Column(
@@ -257,7 +256,7 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
       valueListenable: T.locale,
       builder: (context, locale, child) {
         return Scaffold(
-          backgroundColor: const Color(0xffd9d9d9),
+          
           appBar: AppBar(
             title: Text(T.text("setupSurvey")),
             centerTitle: true,
@@ -311,6 +310,15 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
                   ),
                 ],
               ),
+              if (ngayKetThuc != null && 
+                  DateTime.now().isAfter(DateTime(ngayKetThuc!.year, ngayKetThuc!.month, ngayKetThuc!.day, 23, 59, 59)))
+                const Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    "* Lưu ý: Ngày kết thúc đã qua, nếu xuất bản thì khảo sát sẽ hiển thị là 'Đã đóng (Hết hạn)'.",
+                    style: TextStyle(color: Colors.red, fontSize: 13, fontStyle: FontStyle.italic),
+                  ),
+                ),
 
               const SizedBox(height: 12),
 

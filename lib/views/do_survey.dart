@@ -139,9 +139,20 @@ class _DoSurveyScreenState extends State<DoSurveyScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Câu ${index + 1}: ${cauHoi.noiDung} ${cauHoi.batBuoc ? "(*)" : ""}',
+                    'Câu ${index + 1}: ${cauHoi.noiDung}',
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
+                  if (cauHoi.batBuoc)
+                    const Padding(
+                      padding: EdgeInsets.only(top: 4),
+                      child: Text(
+                        "* Bắt buộc",
+                        style: TextStyle(
+                          color: Colors.red,
+                          fontSize: 13,
+                        ),
+                      ),
+                    ),
                   if (cauHoi.hinhAnh != null) ...[
                     const SizedBox(height: 8),
                     ClipRRect(

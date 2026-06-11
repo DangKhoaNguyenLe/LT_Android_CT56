@@ -18,7 +18,6 @@ class SurveyPreviewPage extends StatelessWidget {
 
   Widget buildQuestionPreview(CauHoi cauHoi, int index) {
     return Card(
-      color: Colors.white,
       margin: const EdgeInsets.only(bottom: 12),
       child: Padding(
         padding: const EdgeInsets.all(14),
@@ -125,7 +124,7 @@ class SurveyPreviewPage extends StatelessWidget {
         khaoSat.moTa.trim().isEmpty ? "Chưa có mô tả" : khaoSat.moTa;
 
     return Scaffold(
-      backgroundColor: const Color(0xffd9d9d9),
+      
       appBar: AppBar(
         title: const Text("Xem trước khảo sát"),
         centerTitle: true,

@@ -62,7 +62,6 @@ class _QuestionListPageState extends State<QuestionListPage> {
     final cauHoi = widget.khaoSat.cauHois[index];
 
     return Card(
-      color: Colors.white,
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
@@ -120,7 +119,7 @@ class _QuestionListPageState extends State<QuestionListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffd9d9d9),
+      
       appBar: AppBar(
         title: Text(
           widget.khaoSat.tenKhaoSat,

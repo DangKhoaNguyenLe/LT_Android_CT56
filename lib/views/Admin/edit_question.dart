@@ -165,7 +165,7 @@ class _EditQuestionPageState extends State<EditQuestionPage> {
     final isMultipleChoice = loaiCauHoi == LoaiCauHoi.tracNghiem;
 
     return Scaffold(
-      backgroundColor: const Color(0xffd9d9d9),
+      
       appBar: AppBar(
         title: const Text("Sửa câu hỏi"),
         centerTitle: true,

@@ -51,7 +51,6 @@ class _SurveyStatisticsDetailState extends State<SurveyStatisticsDetail> {
             .toList();
 
         return Card(
-          color: Colors.white,
           margin: const EdgeInsets.only(bottom: 16),
           child: Padding(
             padding: const EdgeInsets.all(16),
@@ -157,7 +156,7 @@ class _SurveyStatisticsDetailState extends State<SurveyStatisticsDetail> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffd9d9d9),
+      
       appBar: AppBar(
         title: const Text("Phân tích chi tiết"),
         backgroundColor: const Color(0xff08aff0),

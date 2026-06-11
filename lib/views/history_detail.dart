@@ -17,7 +17,7 @@ class HistoryDetailScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffd9d9d9),
+      
       appBar: AppBar(
         title: const Text('Chi tiết bài làm'),
         backgroundColor: const Color(0xFF0EA5E9),

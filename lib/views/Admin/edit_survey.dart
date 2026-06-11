@@ -233,6 +233,16 @@ class _EditSurveyPageState extends State<EditSurveyPage> {
               });
             },
           ),
+          if (selectedStatus == TrangThaiKhaoSat.dangMo && 
+              ngayKetThuc != null && 
+              DateTime.now().isAfter(DateTime(ngayKetThuc!.year, ngayKetThuc!.month, ngayKetThuc!.day, 23, 59, 59)))
+            const Padding(
+              padding: EdgeInsets.only(top: 8.0),
+              child: Text(
+                "* Lưu ý: Ngày kết thúc đã qua, khảo sát sẽ hiển thị là 'Đã đóng (Hết hạn)' đối với người dùng.",
+                style: TextStyle(color: Colors.red, fontSize: 13, fontStyle: FontStyle.italic),
+              ),
+            ),
           const SizedBox(height: 12),
           Row(
             children: [

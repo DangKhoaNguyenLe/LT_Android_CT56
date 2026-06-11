@@ -29,7 +29,6 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
   }
 
   void _showEditDialog(Account user) {
-    final TextEditingController roleController = TextEditingController(text: user.role);
     final TextEditingController hoTenController = TextEditingController(text: user.hoTen);
     final TextEditingController emailController = TextEditingController(text: user.email);
     final TextEditingController phoneController = TextEditingController(text: user.soDienThoai);
@@ -133,18 +132,6 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
                     }
                   },
                 ),
-                const SizedBox(height: 10),
-                DropdownButtonFormField<String>(
-                  value: user.role,
-                  decoration: const InputDecoration(labelText: 'Quyền truy cập'),
-                  items: const [
-                    DropdownMenuItem(value: 'User', child: Text('Người dùng (User)')),
-                    DropdownMenuItem(value: 'Admin', child: Text('Quản trị viên (Admin)')),
-                  ],
-                  onChanged: (value) {
-                    roleController.text = value ?? 'User';
-                  },
-                ),
               ],
             ),
           ),
@@ -165,7 +152,7 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
                   soDienThoai: phoneController.text,
                   email: emailController.text,
                   queQuan: queQuanController.text,
-                  role: roleController.text,
+                  role: user.role,
                 );
                 bool success = await _userController.updateUserInfo(updatedAccount);
                 if (success) {
@@ -244,7 +231,7 @@ class _ManageUserScreenState extends State<ManageUserScreen> {
                           ),
                         ),
                         title: Text(user.hoTen.isEmpty ? user.username : user.hoTen),
-                        subtitle: Text('Role: ${user.role} | Username: ${user.username}'),
+                        subtitle: Text('Username: ${user.username}'),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [

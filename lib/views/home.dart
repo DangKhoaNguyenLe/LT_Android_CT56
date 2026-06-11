@@ -32,8 +32,10 @@ class _HomeScreenState extends State<HomeScreen> {
       bool isClosedByLimit = (survey.gioiHanNguoiThamGia != null &&
           survey.gioiHanNguoiThamGia! > 0 &&
           survey.soNguoiThamGia >= survey.gioiHanNguoiThamGia!);
+      bool isClosedByTime = survey.isClosedByTime();
+      bool hasStarted = survey.ngayBatDau == null || DateTime.now().isAfter(survey.ngayBatDau!);
 
-      if(survey.trangThai == TrangThaiKhaoSat.dangMo && !isClosedByLimit && !(await lichSuController.hasUserCompletedSurvey(currentUserId, survey.id))) {
+      if(survey.trangThai == TrangThaiKhaoSat.dangMo && !isClosedByLimit && !isClosedByTime && hasStarted && !(await lichSuController.hasUserCompletedSurvey(currentUserId, survey.id))) {
         result.add(survey);
       }
     }
@@ -45,7 +47,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F4F6), 
+       
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16.0),
         child: Column(
@@ -80,7 +82,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   
                   List<KhaoSat> result = [];
                   for(var survey in fetchedSurveys) {
-                    if(survey.trangThai == TrangThaiKhaoSat.dangMo && !(await lichSuController.hasUserCompletedSurvey(currentUserId, survey.id))) {
+                    bool isClosedByLimit = (survey.gioiHanNguoiThamGia != null &&
+                        survey.gioiHanNguoiThamGia! > 0 &&
+                        survey.soNguoiThamGia >= survey.gioiHanNguoiThamGia!);
+                    bool isClosedByTime = survey.isClosedByTime();
+                    bool hasStarted = survey.ngayBatDau == null || DateTime.now().isAfter(survey.ngayBatDau!);
+                    if(survey.trangThai == TrangThaiKhaoSat.dangMo && !isClosedByLimit && !isClosedByTime && hasStarted && !(await lichSuController.hasUserCompletedSurvey(currentUserId, survey.id))) {
                       result.add(survey);
                     }
                   }

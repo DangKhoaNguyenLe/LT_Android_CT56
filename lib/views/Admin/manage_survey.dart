@@ -28,6 +28,7 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
 
   Future<void> refreshData() async {
     final fetched = await controller.getAll();
+    fetched.sort((a, b) => b.ngayTao.compareTo(a.ngayTao));
     setState(() {
       surveys = fetched;
     });
@@ -99,6 +100,10 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
       return Colors.grey;
     }
 
+    if (survey.trangThai == TrangThaiKhaoSat.dangMo && survey.isClosedByTime()) {
+      return Colors.grey;
+    }
+
     switch (survey.trangThai) {
       case TrangThaiKhaoSat.banNhap:
         return Colors.orange;
@@ -111,7 +116,6 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
 
   Widget buildSurveyItem(KhaoSat survey) {
     return Card(
-      color: Colors.white,
       margin: const EdgeInsets.only(bottom: 12),
       child: ListTile(
         leading: CircleAvatar(
@@ -218,7 +222,7 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffd9d9d9),
+      
       appBar: AppBar(
         title: const Text("Quản lý khảo sát"),
         centerTitle: true,

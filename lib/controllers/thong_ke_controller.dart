@@ -25,31 +25,26 @@ class ThongKeController {
   }
 
   double getTiLeHoanThanh(List<KhaoSat> surveys) {
-    final tongPhanHoi = getTongSoPhanHoi(surveys);
-    final tongHoanThanh = getTongSoHoanThanh(surveys);
-
-    if (tongPhanHoi == 0) {
+    if (surveys.isEmpty) {
       return 0;
     }
+    
+    int closedCount = 0;
+    for (final survey in surveys) {
+      if (survey.trangThai == TrangThaiKhaoSat.daDong || 
+          survey.isClosedByTime() || 
+          (survey.gioiHanNguoiThamGia != null && survey.gioiHanNguoiThamGia! > 0 && survey.soNguoiThamGia >= survey.gioiHanNguoiThamGia!)) {
+        closedCount++;
+      }
+    }
 
-    return tongHoanThanh / tongPhanHoi * 100;
+    return (closedCount / surveys.length) * 100;
   }
 
-  double getDanhGiaTrungBinh(List<KhaoSat> surveys) {
-    final filteredSurveys = surveys
-        .where((item) => item.danhGiaTrungBinh > 0)
-        .toList();
-
-    if (filteredSurveys.isEmpty) {
-      return 0;
-    }
-
-    double total = 0;
-    for (final survey in filteredSurveys) {
-      total += survey.danhGiaTrungBinh;
-    }
-
-    return total / filteredSurveys.length;
+  List<KhaoSat> getTopSurveys(List<KhaoSat> surveys, {int limit = 5}) {
+    final sorted = List<KhaoSat>.from(surveys);
+    sorted.sort((a, b) => b.soPhanHoi.compareTo(a.soPhanHoi));
+    return sorted.take(limit).toList();
   }
 
   int getTongSoKhaoSat(List<KhaoSat> surveys) {

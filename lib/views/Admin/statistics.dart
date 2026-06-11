@@ -44,7 +44,6 @@ class _StatisticsPageState extends State<StatisticsPage> {
     required String value,
   }) {
     return Card(
-      color: Colors.white,
       elevation: 2,
       child: Container(
         padding: const EdgeInsets.all(14),
@@ -81,40 +80,117 @@ class _StatisticsPageState extends State<StatisticsPage> {
     );
   }
 
-  Widget buildOverview() {
-    final tongPhanHoi = controller.getTongSoPhanHoi(surveys);
-    final tongHoanThanh = controller.getTongSoHoanThanh(surveys);
-    final tiLeHoanThanh = controller.getTiLeHoanThanh(surveys);
-    final danhGiaTrungBinh = controller.getDanhGiaTrungBinh(surveys);
+  Widget _buildStatusBreakdown() {
+    int dangMo = 0;
+    int daDong = 0;
+    int banNhap = 0;
+    for (var s in surveys) {
+      if (s.trangThai == TrangThaiKhaoSat.banNhap) {
+        banNhap++;
+      } else if (s.trangThai == TrangThaiKhaoSat.daDong || s.isClosedByTime() || (s.gioiHanNguoiThamGia != null && s.gioiHanNguoiThamGia! > 0 && s.soNguoiThamGia >= s.gioiHanNguoiThamGia!)) {
+        daDong++;
+      } else {
+        dangMo++;
+      }
+    }
 
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: 12,
-      mainAxisSpacing: 12,
-      childAspectRatio: 1.7,
+    if (surveys.isEmpty) return const SizedBox();
+
+    return Column(
       children: [
-        buildSummaryCard(
-          title: "Tổng số phản hồi",
-          icon: Icons.groups,
-          value: tongPhanHoi.toString(),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Row(
+            children: [
+              if (dangMo > 0) Expanded(flex: dangMo, child: Container(height: 12, color: const Color(0xff08aff0))),
+              if (daDong > 0) Expanded(flex: daDong, child: Container(height: 12, color: Colors.grey)),
+              if (banNhap > 0) Expanded(flex: banNhap, child: Container(height: 12, color: Colors.orange)),
+            ],
+          ),
         ),
-        buildSummaryCard(
-          title: "Khảo sát hoàn thành",
-          icon: Icons.assignment_turned_in,
-          value: tongHoanThanh.toString(),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text("Đang mở: $dangMo", style: const TextStyle(color: Color(0xff08aff0), fontWeight: FontWeight.bold)),
+            Text("Đã đóng: $daDong", style: const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+            Text("Bản nháp: $banNhap", style: const TextStyle(color: Colors.orange, fontWeight: FontWeight.bold)),
+          ],
+        )
+      ],
+    );
+  }
+
+  Widget _buildTopSurveys() {
+    final topSurveys = controller.getTopSurveys(surveys);
+    if (topSurveys.isEmpty) return const Text("Chưa có khảo sát nào.");
+
+    return Column(
+      children: topSurveys.map((s) => Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        child: ListTile(
+          leading: const CircleAvatar(backgroundColor: Color(0xff08aff0), child: Icon(Icons.star, color: Colors.white)),
+          title: Text(s.tenKhaoSat, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontWeight: FontWeight.bold)),
+          subtitle: Text("Phản hồi: ${s.soPhanHoi} | Lượt tham gia: ${s.soNguoiThamGia}"),
         ),
-        buildSummaryCard(
-          title: "Tỉ lệ hoàn thành",
-          icon: Icons.trending_up,
-          value: "${tiLeHoanThanh.toStringAsFixed(1)}%",
+      )).toList(),
+    );
+  }
+
+  Widget buildOverview() {
+    final tongKhaoSat = surveys.length;
+    final tongPhanHoi = controller.getTongSoPhanHoi(surveys);
+    
+    int dangMoCount = 0;
+    for (var s in surveys) {
+      if (s.trangThai == TrangThaiKhaoSat.dangMo && !s.isClosedByTime() && !(s.gioiHanNguoiThamGia != null && s.gioiHanNguoiThamGia! > 0 && s.soNguoiThamGia >= s.gioiHanNguoiThamGia!)) {
+        dangMoCount++;
+      }
+    }
+
+    final tiLeHoanThanh = controller.getTiLeHoanThanh(surveys);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        GridView.count(
+          crossAxisCount: 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+          childAspectRatio: 1.7,
+          children: [
+            buildSummaryCard(
+              title: "Tổng số khảo sát",
+              icon: Icons.library_books,
+              value: tongKhaoSat.toString(),
+            ),
+            buildSummaryCard(
+              title: "Tổng số phản hồi",
+              icon: Icons.groups,
+              value: tongPhanHoi.toString(),
+            ),
+            buildSummaryCard(
+              title: "Khảo sát đang mở",
+              icon: Icons.play_circle_outline,
+              value: dangMoCount.toString(),
+            ),
+            buildSummaryCard(
+              title: "Tỉ lệ hoàn tất",
+              icon: Icons.trending_up,
+              value: "${tiLeHoanThanh.toStringAsFixed(1)}%",
+            ),
+          ],
         ),
-        buildSummaryCard(
-          title: "Đánh giá trung bình",
-          icon: Icons.star_border,
-          value: "${danhGiaTrungBinh.toStringAsFixed(1)}/5.0",
-        ),
+        const SizedBox(height: 24),
+        const Text("Trạng thái khảo sát", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        _buildStatusBreakdown(),
+        const SizedBox(height: 24),
+        const Text("Top khảo sát nhiều tương tác nhất", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+        const SizedBox(height: 12),
+        _buildTopSurveys(),
       ],
     );
   }
@@ -261,7 +337,7 @@ class _StatisticsPageState extends State<StatisticsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xffd9d9d9),
+      
       appBar: AppBar(
         title: const Text("Dashboard phân tích khảo sát"),
         centerTitle: true,
