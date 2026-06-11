@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../controllers/khao_sat_controller.dart';
-import '../../controllers/admin_user_controller.dart';
 import '../../controllers/UserController.dart';
 import '../../models/khao_sat.dart';
 
@@ -94,14 +93,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => Scaffold(
-          appBar: AppBar(
-            title: const Text('Quản lý tài khoản'),
-            backgroundColor: const Color(0xFF0EA5E9),
-            foregroundColor: Colors.white,
-          ),
-          body: ProfileScreen(account: widget.account),
-        ),
+        builder: (_) => ProfilePage(account: widget.account),
       ),
     );
 

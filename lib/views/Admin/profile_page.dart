@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 
-import '../../controllers/admin_user_controller.dart';
-import '../../models/user_profile.dart';
+import '../../models/account.dart';
+import '../../controllers/UserController.dart';
 import '../../utils/app_text.dart';
 
 class ProfilePage extends StatefulWidget {
-  final bool isRequiredSetup;
+  final Account account;
 
   const ProfilePage({
     super.key,
-    this.isRequiredSetup = false,
+    required this.account,
   });
 
   @override
@@ -17,82 +17,85 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  final AdminUserController controller = AdminUserController();
+  final UserController controller = UserController();
+  final _formKey = GlobalKey<FormState>();
 
-  late TextEditingController bietDanhController;
   late TextEditingController hoTenController;
   late TextEditingController phoneController;
-  late TextEditingController diaChiController;
-  late TextEditingController cccdController;
-
-  String avatar = "";
+  late TextEditingController queQuanController;
+  late TextEditingController ngaySinhController;
+  late TextEditingController emailController;
+  int gioiTinh = 0;
 
   @override
   void initState() {
     super.initState();
-
-    final profile = controller.getProfile();
-
-    avatar = profile.avatar;
-    bietDanhController = TextEditingController(text: profile.bietDanh);
-    hoTenController = TextEditingController(text: profile.hoTen);
-    phoneController = TextEditingController(text: profile.soDienThoai);
-    diaChiController = TextEditingController(text: profile.diaChi);
-    cccdController = TextEditingController(text: profile.cccd);
+    hoTenController = TextEditingController(text: widget.account.hoTen);
+    phoneController = TextEditingController(text: widget.account.soDienThoai);
+    queQuanController = TextEditingController(text: widget.account.queQuan);
+    ngaySinhController = TextEditingController(text: widget.account.ngaySinh);
+    emailController = TextEditingController(text: widget.account.email);
+    gioiTinh = widget.account.gioiTinh;
   }
 
-  void chooseAvatar() {
-    setState(() {
-      avatar = "avatar_admin";
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          T.isEnglish
-              ? "Avatar selected"
-              : "Đã chọn ảnh đại diện mẫu",
-        ),
-      ),
-    );
+  @override
+  void dispose() {
+    hoTenController.dispose();
+    phoneController.dispose();
+    queQuanController.dispose();
+    ngaySinhController.dispose();
+    emailController.dispose();
+    super.dispose();
   }
 
-  void saveProfile() {
-    if (bietDanhController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            T.isEnglish
-                ? "Display nickname is required"
-                : "Bắt buộc nhập biệt danh hiển thị",
-          ),
-        ),
+  void saveProfile() async {
+    if (_formKey.currentState!.validate()) {
+      Account updatedAccount = Account(
+        id: widget.account.id,
+        username: widget.account.username,
+        password: widget.account.password,
+        hoTen: hoTenController.text.trim(),
+        ngaySinh: ngaySinhController.text.trim(),
+        gioiTinh: gioiTinh,
+        soDienThoai: phoneController.text.trim(),
+        email: emailController.text.trim(),
+        queQuan: queQuanController.text.trim(),
+        role: widget.account.role,
       );
-      return;
+
+      bool success = await controller.updateUserInfo(updatedAccount);
+
+      if (success) {
+        widget.account.hoTen = updatedAccount.hoTen;
+        widget.account.ngaySinh = updatedAccount.ngaySinh;
+        widget.account.gioiTinh = updatedAccount.gioiTinh;
+        widget.account.soDienThoai = updatedAccount.soDienThoai;
+        widget.account.email = updatedAccount.email;
+        widget.account.queQuan = updatedAccount.queQuan;
+
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                T.isEnglish
+                    ? "Account updated successfully"
+                    : "Cập nhật tài khoản thành công",
+              ),
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                T.isEnglish ? "Update failed" : "Cập nhật thất bại",
+              ),
+            ),
+          );
+        }
+      }
     }
-
-    final newProfile = UserProfile(
-      avatar: avatar,
-      bietDanh: bietDanhController.text.trim(),
-      hoTen: hoTenController.text.trim(),
-      soDienThoai: phoneController.text.trim(),
-      diaChi: diaChiController.text.trim(),
-      cccd: cccdController.text.trim(),
-    );
-
-    controller.updateProfile(newProfile);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          T.isEnglish
-              ? "Account updated successfully"
-              : "Cập nhật tài khoản thành công",
-        ),
-      ),
-    );
-
-    Navigator.pop(context, true);
   }
 
   @override
@@ -102,150 +105,171 @@ class _ProfilePageState extends State<ProfilePage> {
     return ValueListenableBuilder<Locale>(
       valueListenable: T.locale,
       builder: (context, locale, child) {
-        return WillPopScope(
-          onWillPop: () async {
-            if (widget.isRequiredSetup && controller.isProfileLocked()) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    T.isEnglish
-                        ? "You must set a nickname first"
-                        : "Bạn phải thiết lập biệt danh trước",
-                  ),
-                ),
-              );
-              return false;
-            }
-            return true;
-          },
-          child: Scaffold(
-            appBar: AppBar(
-              title: Text(
-                widget.isRequiredSetup
-                    ? T.text("setupAccount")
-                    : T.text("profile"),
-              ),
-              centerTitle: true,
-              automaticallyImplyLeading: !widget.isRequiredSetup,
-            ),
-            body: ListView(
+        return Scaffold(
+          appBar: AppBar(
+            title: Text(T.text("profile")),
+            centerTitle: true,
+          ),
+          body: Form(
+            key: _formKey,
+            child: ListView(
               padding: const EdgeInsets.all(16),
               children: [
                 Center(
                   child: Column(
                     children: [
-                      CircleAvatar(
+                      const CircleAvatar(
                         radius: 48,
-                        backgroundColor: const Color(0xff08aff0),
-                        child: avatar.isEmpty
-                            ? const Icon(
-                                Icons.person,
-                                size: 54,
-                                color: Colors.white,
-                              )
-                            : const Icon(
-                                Icons.image,
-                                size: 54,
-                                color: Colors.white,
-                              ),
+                        backgroundColor: Color(0xff08aff0),
+                        child: Icon(
+                          Icons.person,
+                          size: 54,
+                          color: Colors.white,
+                        ),
                       ),
-
                       const SizedBox(height: 10),
-
-                      OutlinedButton.icon(
-                        onPressed: chooseAvatar,
-                        icon: const Icon(Icons.camera_alt),
-                        label: Text(T.text("changeAvatar")),
+                      Text(
+                        widget.account.username,
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        widget.account.role == 'Admin'
+                            ? 'Quản trị viên'
+                            : 'Người dùng',
+                        style: const TextStyle(
+                          color: Colors.grey,
+                        ),
                       ),
                     ],
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
-                TextField(
-                  controller: bietDanhController,
-                  decoration: InputDecoration(
-                    labelText: T.text("nickname"),
-                    hintText: T.text("nicknameHint"),
-                    filled: true,
-                    fillColor: isDark ? Colors.black26 : Colors.white,
-                    border: const OutlineInputBorder(),
-                  ),
-                ),
-
-                const SizedBox(height: 12),
-
-                TextField(
+                TextFormField(
                   controller: hoTenController,
                   decoration: InputDecoration(
                     labelText: T.text("fullName"),
                     filled: true,
                     fillColor: isDark ? Colors.black26 : Colors.white,
                     border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.person_outline),
                   ),
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Vui lòng nhập họ tên'
+                      : null,
                 ),
-
                 const SizedBox(height: 12),
-
-                TextField(
+                TextFormField(
+                  controller: ngaySinhController,
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    labelText: 'Ngày sinh (dd/mm/yyyy)',
+                    filled: true,
+                    fillColor: isDark ? Colors.black26 : Colors.white,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.calendar_today),
+                  ),
+                  onTap: () async {
+                    DateTime? picked = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime.now(),
+                    );
+                    if (picked != null) {
+                      setState(() {
+                        ngaySinhController.text =
+                            "${picked.day.toString().padLeft(2, '0')}/${picked.month.toString().padLeft(2, '0')}/${picked.year}";
+                      });
+                    }
+                  },
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Vui lòng chọn ngày sinh'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<int>(
+                  value: gioiTinh,
+                  decoration: InputDecoration(
+                    labelText: 'Giới tính',
+                    filled: true,
+                    fillColor: isDark ? Colors.black26 : Colors.white,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.transgender),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 0, child: Text('Nam')),
+                    DropdownMenuItem(value: 1, child: Text('Nữ')),
+                  ],
+                  onChanged: (value) {
+                    setState(() {
+                      if (value != null) gioiTinh = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
                   controller: phoneController,
                   keyboardType: TextInputType.phone,
                   decoration: InputDecoration(
                     labelText: T.text("phone"),
-                    helperText: phoneController.text.isEmpty
-                        ? T.text("notUpdated")
-                        : "${T.text("maskedDisplay")}: ${controller.maskPhone(phoneController.text)}",
                     filled: true,
                     fillColor: isDark ? Colors.black26 : Colors.white,
                     border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.phone),
                   ),
-                  onChanged: (_) {
-                    setState(() {});
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Vui lòng nhập số điện thoại'
+                      : null,
+                ),
+                const SizedBox(height: 12),
+                TextFormField(
+                  controller: emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  decoration: InputDecoration(
+                    labelText: 'Email',
+                    filled: true,
+                    fillColor: isDark ? Colors.black26 : Colors.white,
+                    border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.email),
+                  ),
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Vui lòng nhập email';
+                    }
+                    if (!value.contains('@')) return 'Email không hợp lệ';
+                    return null;
                   },
                 ),
-
                 const SizedBox(height: 12),
-
-                TextField(
-                  controller: diaChiController,
+                TextFormField(
+                  controller: queQuanController,
                   decoration: InputDecoration(
-                    labelText: T.text("address"),
+                    labelText: 'Quê quán',
                     filled: true,
                     fillColor: isDark ? Colors.black26 : Colors.white,
                     border: const OutlineInputBorder(),
+                    prefixIcon: const Icon(Icons.location_on),
                   ),
+                  validator: (value) => value == null || value.trim().isEmpty
+                      ? 'Vui lòng nhập quê quán'
+                      : null,
                 ),
-
-                const SizedBox(height: 12),
-
-                TextField(
-                  controller: cccdController,
-                  keyboardType: TextInputType.number,
-                  decoration: InputDecoration(
-                    labelText: T.text("cccd"),
-                    helperText: cccdController.text.isEmpty
-                        ? T.text("notUpdated")
-                        : "${T.text("maskedDisplay")}: ${controller.maskCCCD(cccdController.text)}",
-                    filled: true,
-                    fillColor: isDark ? Colors.black26 : Colors.white,
-                    border: const OutlineInputBorder(),
-                  ),
-                  onChanged: (_) {
-                    setState(() {});
-                  },
-                ),
-
                 const SizedBox(height: 24),
-
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xff08aff0),
-                    foregroundColor: Colors.black,
+                    foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   onPressed: saveProfile,
-                  child: Text(T.text("saveInfo")),
+                  child: Text(
+                    T.text("saveInfo"),
+                    style: const TextStyle(
+                        fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ],
             ),

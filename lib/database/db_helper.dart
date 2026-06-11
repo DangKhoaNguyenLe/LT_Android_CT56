@@ -35,6 +35,14 @@ class DatabaseHelper {
               FOREIGN KEY (idTaiKhoan) REFERENCES TaiKhoan (idTaiKhoan) ON DELETE CASCADE
           )
         ''');
+        await db.execute('''
+          CREATE TABLE IF NOT EXISTS DanhMucPhanThuong (
+              idPhanThuong INTEGER PRIMARY KEY AUTOINCREMENT,
+              tenPhanThuong NVARCHAR(255),
+              loaiPhanThuong INTEGER,
+              giaTri NVARCHAR(255)
+          )
+        ''');
       },
     );
   }
@@ -181,6 +189,16 @@ class DatabaseHelper {
           giaTri NVARCHAR(255),
           ngayNhan TEXT,
           FOREIGN KEY (idTaiKhoan) REFERENCES TaiKhoan (idTaiKhoan) ON DELETE CASCADE
+      )
+    ''');
+
+    // 9. DanhMucPhanThuong
+    await db.execute('''
+      CREATE TABLE IF NOT EXISTS DanhMucPhanThuong (
+          idPhanThuong INTEGER PRIMARY KEY AUTOINCREMENT,
+          tenPhanThuong NVARCHAR(255),
+          loaiPhanThuong INTEGER,
+          giaTri NVARCHAR(255)
       )
     ''');
 
