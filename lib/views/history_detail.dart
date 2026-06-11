@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/khao_sat.dart';
 import '../models/lich_su_khao_sat.dart';
@@ -80,6 +81,21 @@ class HistoryDetailScreen extends StatelessWidget {
                         color: Colors.black,
                       ),
                     ),
+                    if (cauHoi.hinhAnh != null)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.file(
+                            File(cauHoi.hinhAnh!),
+                            height: 150,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Center(child: Text('Lỗi tải ảnh', style: TextStyle(color: Colors.red))),
+                          ),
+                        ),
+                      ),
                     const SizedBox(height: 12),
                     if (cauHoi.loaiCauHoi == LoaiCauHoi.tuLuan)
                       TextField(
@@ -97,12 +113,31 @@ class HistoryDetailScreen extends StatelessWidget {
                         bool isSelected = listTraLoi.any((c) => c.idDapAn == dapAn.id);
 
                         return RadioListTile<int>(
-                          title: Text(
-                            dapAn.noiDung,
-                            style: TextStyle(
-                              color: isSelected ? Colors.black : Colors.black54,
-                              fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
-                            ),
+                          title: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                dapAn.noiDung,
+                                style: TextStyle(
+                                  color: isSelected ? Colors.black : Colors.black54,
+                                  fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
+                                ),
+                              ),
+                              if (dapAn.hinhAnh != null)
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 8),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: Image.file(
+                                      File(dapAn.hinhAnh!),
+                                      height: 100,
+                                      fit: BoxFit.cover,
+                                      errorBuilder: (context, error, stackTrace) =>
+                                          const Text('Lỗi tải ảnh', style: TextStyle(color: Colors.red)),
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
                           value: dapAn.id,
                           groupValue: isSelected ? dapAn.id : -1,

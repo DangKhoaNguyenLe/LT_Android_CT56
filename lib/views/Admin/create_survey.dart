@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../models/cau_hoi.dart';
 import '../../models/dap_an.dart';
+import '../../models/khao_sat.dart';
 
 import 'survey_setup_page.dart';
 
 class CreateSurveyPage extends StatefulWidget {
-  const CreateSurveyPage({super.key});
+  final KhaoSat? existingSurvey;
+
+  const CreateSurveyPage({super.key, this.existingSurvey});
 
   @override
   State<CreateSurveyPage> createState() => _CreateSurveyPageState();
@@ -17,18 +20,43 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
   final TextEditingController tenController = TextEditingController();
   final TextEditingController moTaController = TextEditingController();
 
-  List<CauHoi> cauHois = [
-    CauHoi(
-      id: 1,
-      noiDung: "",
-      loaiCauHoi: LoaiCauHoi.tracNghiem,
-      batBuoc: false,
-      dapAns: [
-        DapAn(id: 1, noiDung: ""),
-        DapAn(id: 2, noiDung: ""),
-      ],
-    ),
-  ];
+  List<CauHoi> cauHois = [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.existingSurvey != null) {
+      tenController.text = widget.existingSurvey!.tenKhaoSat;
+      moTaController.text = widget.existingSurvey!.moTa;
+      cauHois = widget.existingSurvey!.cauHois.map((ch) {
+        return CauHoi(
+          id: ch.id,
+          noiDung: ch.noiDung,
+          loaiCauHoi: ch.loaiCauHoi,
+          batBuoc: ch.batBuoc,
+          hinhAnh: ch.hinhAnh,
+          dapAns: ch.dapAns.map((da) => DapAn(
+            id: da.id,
+            noiDung: da.noiDung,
+            hinhAnh: da.hinhAnh,
+          )).toList(),
+        );
+      }).toList();
+    } else {
+      cauHois = [
+        CauHoi(
+          id: 1,
+          noiDung: "",
+          loaiCauHoi: LoaiCauHoi.tracNghiem,
+          batBuoc: false,
+          dapAns: [
+            DapAn(id: 1, noiDung: ""),
+            DapAn(id: 2, noiDung: ""),
+          ],
+        ),
+      ];
+    }
+  }
 
   void addQuestion() {
     setState(() {
@@ -200,6 +228,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
       context,
       MaterialPageRoute(
         builder: (_) => SurveySetupPage(
+          existingSurvey: widget.existingSurvey,
           tenKhaoSat: tenController.text.trim(),
           moTa: moTaController.text.trim(),
           cauHois: cauHois,
@@ -469,7 +498,7 @@ class _CreateSurveyPageState extends State<CreateSurveyPage> {
     return Scaffold(
       
       appBar: AppBar(
-        title: const Text("Tạo khảo sát"),
+        title: Text(widget.existingSurvey != null ? "Chỉnh sửa câu hỏi" : "Tạo khảo sát"),
         centerTitle: true,
       ),
       body: ListView(

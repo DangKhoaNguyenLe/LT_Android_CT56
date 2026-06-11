@@ -4,8 +4,6 @@ import '../../controllers/khao_sat_controller.dart';
 import '../../models/khao_sat.dart';
 
 import 'create_survey.dart';
-import 'edit_survey.dart';
-import 'question_list.dart';
 import 'survey_preview.dart';
 
 class ManageSurveyPage extends StatefulWidget {
@@ -144,19 +142,11 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
                   builder: (_) => SurveyPreviewPage(khaoSat: survey),
                 ),
               );
-            } else if (value == "question") {
-              await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => QuestionListPage(khaoSat: survey),
-                ),
-              );
-              refreshData();
             } else if (value == "edit") {
               await Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => EditSurveyPage(khaoSat: survey),
+                  builder: (_) => CreateSurveyPage(existingSurvey: survey),
                 ),
               );
               refreshData();
@@ -176,12 +166,8 @@ class _ManageSurveyPageState extends State<ManageSurveyPage> {
               child: Text("Xem trước"),
             ),
             const PopupMenuItem(
-              value: "question",
-              child: Text("Quản lý câu hỏi"),
-            ),
-            const PopupMenuItem(
               value: "edit",
-              child: Text("Sửa khảo sát"),
+              child: Text("Chỉnh sửa"),
             ),
             const PopupMenuItem(
               value: "copy",

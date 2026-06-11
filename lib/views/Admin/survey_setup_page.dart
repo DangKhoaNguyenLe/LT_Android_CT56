@@ -11,12 +11,14 @@ import '../../utils/app_text.dart';
 import 'survey_preview.dart';
 
 class SurveySetupPage extends StatefulWidget {
+  final KhaoSat? existingSurvey;
   final String tenKhaoSat;
   final String moTa;
   final List<CauHoi> cauHois;
 
   const SurveySetupPage({
     super.key,
+    this.existingSurvey,
     required this.tenKhaoSat,
     required this.moTa,
     required this.cauHois,
@@ -46,6 +48,38 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
     setState(() {
       danhMucs = list;
       rewardTemplates = rewards;
+      
+      if (widget.existingSurvey != null) {
+        ngayBatDau = widget.existingSurvey!.ngayBatDau;
+        ngayKetThuc = widget.existingSurvey!.ngayKetThuc;
+        if (widget.existingSurvey!.gioiHanNguoiThamGia != null) {
+          gioiHanController.text = widget.existingSurvey!.gioiHanNguoiThamGia.toString();
+        }
+        
+        if (widget.existingSurvey!.danhMuc != null) {
+          try {
+            selectedDanhMuc = danhMucs.firstWhere((dm) => dm.id == widget.existingSurvey!.danhMuc!.id);
+          } catch (e) {
+            selectedDanhMuc = danhMucs.isNotEmpty ? danhMucs.first : null;
+          }
+        } else if (danhMucs.isNotEmpty) {
+          selectedDanhMuc = danhMucs.first;
+        }
+
+        if (widget.existingSurvey!.loaiPhanThuong != LoaiPhanThuong.khongCo) {
+          try {
+            selectedRewardTemplate = rewardTemplates.firstWhere(
+              (r) => r.loaiPhanThuong == widget.existingSurvey!.loaiPhanThuong && 
+                     r.giaTri == widget.existingSurvey!.giaTriPhanThuong
+            );
+          } catch (e) {
+            selectedRewardTemplate = null;
+          }
+        }
+      } else if (danhMucs.isNotEmpty) {
+        selectedDanhMuc = danhMucs.first;
+      }
+
       isLoading = false;
     });
   }
@@ -105,10 +139,10 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
 
   Future<KhaoSat> buildSurvey(TrangThaiKhaoSat status) async {
     return KhaoSat(
-      id: 0,
+      id: widget.existingSurvey?.id ?? 0,
       tenKhaoSat: widget.tenKhaoSat,
       moTa: widget.moTa,
-      ngayTao: DateTime.now(),
+      ngayTao: widget.existingSurvey?.ngayTao ?? DateTime.now(),
       ngayBatDau: ngayBatDau,
       ngayKetThuc: ngayKetThuc,
       danhMuc: selectedDanhMuc,
@@ -141,9 +175,14 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
       return;
     }
 
-    await controller.addSurvey(survey);
+    if (widget.existingSurvey != null) {
+      await controller.updateSurvey(survey);
+      showMessage("Đã cập nhật bản nháp thành công");
+    } else {
+      await controller.addSurvey(survey);
+      showMessage(T.text("draftSaved"));
+    }
 
-    showMessage(T.text("draftSaved"));
     if(context.mounted) Navigator.pop(context, true);
   }
 
@@ -160,9 +199,14 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
       return;
     }
 
-    await controller.addSurvey(survey);
+    if (widget.existingSurvey != null) {
+      await controller.updateSurvey(survey);
+      showMessage("Đã cập nhật khảo sát thành công");
+    } else {
+      await controller.addSurvey(survey);
+      showMessage(T.text("createSuccess"));
+    }
 
-    showMessage(T.text("createSuccess"));
     if(context.mounted) Navigator.pop(context, true);
   }
 
@@ -268,7 +312,7 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
 
               const SizedBox(height: 12),
 
-              DropdownButtonFormField<DanhMuc>(
+              DropdownButtonFormField<DanhMuc?>(
                 value: selectedDanhMuc,
                 decoration: InputDecoration(
                   labelText: T.text("category"),
@@ -276,12 +320,19 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
                   fillColor: Colors.white,
                   border: const OutlineInputBorder(),
                 ),
-                items: danhMucs.map((dm) {
-                  return DropdownMenuItem(
-                    value: dm,
-                    child: Text(dm.tenDanhMuc),
-                  );
-                }).toList(),
+                items: [
+                  if (danhMucs.isEmpty)
+                    DropdownMenuItem<DanhMuc?>(
+                      value: null,
+                      child: Text('Không có danh mục'),
+                    ),
+                  ...danhMucs.map((dm) {
+                    return DropdownMenuItem<DanhMuc?>(
+                      value: dm,
+                      child: Text(dm.tenDanhMuc),
+                    );
+                  }).toList(),
+                ],
                 onChanged: (value) {
                   setState(() {
                     selectedDanhMuc = value;
@@ -353,7 +404,7 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: saveDraft,
-                      child: Text(T.text("saveDraft")),
+                      child: Text(widget.existingSurvey != null ? "Cập nhật bản nháp" : T.text("saveDraft")),
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -365,7 +416,7 @@ class _SurveySetupPageState extends State<SurveySetupPage> {
                         padding: const EdgeInsets.symmetric(vertical: 14),
                       ),
                       onPressed: publishSurvey,
-                      child: Text(T.text("finishCreate")),
+                      child: Text(widget.existingSurvey != null ? "Hoàn tất chỉnh sửa" : T.text("finishCreate")),
                     ),
                   ),
                 ],

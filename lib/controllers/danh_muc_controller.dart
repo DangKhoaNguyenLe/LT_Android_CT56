@@ -7,14 +7,6 @@ class DanhMucController {
   Future<List<DanhMuc>> getAll() async {
     final db = await _dbHelper.database;
     final List<Map<String, dynamic>> maps = await db.query('DanhMucCauHoi');
-    
-    if (maps.isEmpty) {
-      final defaultList = ["Học tập", "Dịch vụ", "Sức khỏe", "Giải trí", "Khác"];
-      for (String name in defaultList) {
-        await add(name);
-      }
-      return await getAll();
-    }
 
     return maps.map((e) => DanhMuc.fromMap(e)).toList();
   }
@@ -36,10 +28,6 @@ class DanhMucController {
 
   Future<void> delete(int id) async {
     final db = await _dbHelper.database;
-    await db.delete(
-      'DanhMucCauHoi',
-      where: 'idDanhMuc = ?',
-      whereArgs: [id],
-    );
+    await db.delete('DanhMucCauHoi', where: 'idDanhMuc = ?', whereArgs: [id]);
   }
 }
