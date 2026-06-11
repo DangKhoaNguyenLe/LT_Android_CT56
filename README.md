@@ -76,13 +76,9 @@ lib/
 │       ├── manage_user.dart             # Quan ly danh sach nguoi dung
 │       ├── manage_category.dart         # Quan ly danh muc
 │       ├── manage_survey.dart           # Quan ly danh sach khao sat (CRUD khao sat)
-│       ├── create_survey.dart           # Tao khao sat moi
-│       ├── edit_survey.dart             # Chinh sua thong tin khao sat
-│       ├── question_list.dart           # Quan ly danh sach cau hoi cua 1 khao sat
-│       ├── add_question.dart            # Them cau hoi (Radio, Checkbox, Tu luan)
-│       ├── edit_question.dart           # Sua cau hoi
+│       ├── create_survey.dart           # Tao moi va Chinh sua khao sat (Giao dien chung)
 │       ├── survey_preview.dart          # Man hinh cho phep Admin xem thu khao sat
-│       ├── survey_setup_page.dart       # Cai dat thong so cho khao sat
+│       ├── survey_setup_page.dart       # Cai dat thong so cho khao sat (Tao/Sua)
 │       ├── manage_reward.dart           # Quan ly phan thuong tich luy
 │       ├── statistics.dart              # Danh sach khao sat de xem thong ke
 │       ├── survey_statistics_detail.dart# Chi tiet thong ke theo tung khao sat
