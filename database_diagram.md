@@ -85,6 +85,13 @@ Table ViPhanThuong {
   giaTri nvarchar(255)
   ngayNhan text
 }
+
+Table DanhMucPhanThuong {
+  idPhanThuong int [pk, increment]
+  tenPhanThuong nvarchar(255)
+  loaiPhanThuong int
+  giaTri nvarchar(255)
+}
 ```
 
 ### Các liên kết khóa ngoại chính (Relationships):
@@ -94,3 +101,4 @@ Table ViPhanThuong {
 - `LichSuKhaoSat` liên kết `KhaoSat` với người dùng `TaiKhoan` đã tham gia.
 - `ChiTietLichSuKhaoSat` lưu chi tiết câu trả lời nối tới `CauHoi` và `DapAn` tương ứng.
 - `ViPhanThuong` lưu trữ phần thưởng thuộc sở hữu của `TaiKhoan`.
+- `DanhMucPhanThuong` lưu trữ cấu hình các phần thưởng hệ thống cung cấp.

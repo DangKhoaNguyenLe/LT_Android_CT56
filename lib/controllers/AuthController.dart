@@ -53,7 +53,7 @@ class AuthController {
 
   Future<bool> logout() async {
     try {
-      // Xử lý logic đăng xuất nếu có (ví dụ: xóa token, xóa shared preferences,...)
+    
       return true;
     } catch (e) {
       print("Lỗi đăng xuất: $e");

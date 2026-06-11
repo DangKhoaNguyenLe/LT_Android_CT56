@@ -2,68 +2,19 @@ import 'package:sqflite/sqflite.dart';
 import '../database/db_helper.dart';
 import '../models/vi_phan_thuong.dart';
 import '../models/khao_sat.dart';
-
-class RewardAdminDetail {
-  final int? idVi;
-  final int idTaiKhoan;
-  final String tenNguoiNhan;
-  final String username;
-  final String tenKhaoSat;
-  final LoaiPhanThuong loaiPhanThuong;
-  final String giaTri;
-  final DateTime ngayNhan;
-
-  RewardAdminDetail({
-    this.idVi,
-    required this.idTaiKhoan,
-    required this.tenNguoiNhan,
-    required this.username,
-    required this.tenKhaoSat,
-    required this.loaiPhanThuong,
-    required this.giaTri,
-    required this.ngayNhan,
-  });
-
-  factory RewardAdminDetail.fromMap(Map<String, dynamic> map) {
-    return RewardAdminDetail(
-      idVi: map['idVi'],
-      idTaiKhoan: map['idTaiKhoan'],
-      tenNguoiNhan: map['HoTen'] ?? map['Username'] ?? 'Không rõ',
-      username: map['Username'] ?? '',
-      tenKhaoSat: map['tenKhaoSat'],
-      loaiPhanThuong: LoaiPhanThuong.values[map['loaiPhanThuong']],
-      giaTri: map['giaTri'],
-      ngayNhan: DateTime.parse(map['ngayNhan']),
-    );
-  }
-}
+import '../models/reward_admin_detail.dart';
 
 class ViController {
   final DatabaseHelper _dbHelper = DatabaseHelper();
 
-  Future<void> _ensureTableExists(Database db) async {
-    await db.execute('''
-      CREATE TABLE IF NOT EXISTS ViPhanThuong (
-          idVi INTEGER PRIMARY KEY AUTOINCREMENT,
-          idTaiKhoan INTEGER,
-          tenKhaoSat NVARCHAR(255),
-          loaiPhanThuong INTEGER,
-          giaTri NVARCHAR(255),
-          ngayNhan TEXT,
-          FOREIGN KEY (idTaiKhoan) REFERENCES TaiKhoan (idTaiKhoan) ON DELETE CASCADE
-      )
-    ''');
-  }
 
   Future<int> addReward(ViPhanThuong viPhanThuong) async {
     final db = await _dbHelper.database;
-    await _ensureTableExists(db);
     return await db.insert('ViPhanThuong', viPhanThuong.toMap());
   }
 
   Future<List<ViPhanThuong>> getRewardsByUser(int idTaiKhoan) async {
     final db = await _dbHelper.database;
-    await _ensureTableExists(db);
     final List<Map<String, dynamic>> maps = await db.query(
       'ViPhanThuong',
       where: 'idTaiKhoan = ?',
@@ -78,7 +29,6 @@ class ViController {
 
   Future<List<RewardAdminDetail>> getAllRewardsAdmin() async {
     final db = await _dbHelper.database;
-    await _ensureTableExists(db);
     
     final List<Map<String, dynamic>> maps = await db.rawQuery('''
       SELECT v.*, t.HoTen, t.Username 

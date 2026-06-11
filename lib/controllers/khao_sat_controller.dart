@@ -26,20 +26,32 @@ class KhaoSatController {
 
   Future<KhaoSat> _getFullKhaoSat(Map<String, dynamic> map) async {
     final db = await _dbHelper.database;
-    
+
     // Get DanhMuc
     DanhMuc? danhMuc;
     if (map['idDanhMuc'] != null) {
-      final dmMaps = await db.query('DanhMucCauHoi', where: 'idDanhMuc = ?', whereArgs: [map['idDanhMuc']]);
+      final dmMaps = await db.query(
+        'DanhMucCauHoi',
+        where: 'idDanhMuc = ?',
+        whereArgs: [map['idDanhMuc']],
+      );
       if (dmMaps.isNotEmpty) danhMuc = DanhMuc.fromMap(dmMaps.first);
     }
 
     // Get CauHoi
-    final chMaps = await db.query('CauHoi', where: 'idKhaoSat = ?', whereArgs: [map['idKhaoSat']]);
+    final chMaps = await db.query(
+      'CauHoi',
+      where: 'idKhaoSat = ?',
+      whereArgs: [map['idKhaoSat']],
+    );
     List<CauHoi> cauHois = [];
     for (var chMap in chMaps) {
       // Get DapAn
-      final daMaps = await db.query('DapAn', where: 'idCauHoi = ?', whereArgs: [chMap['idCauHoi']]);
+      final daMaps = await db.query(
+        'DapAn',
+        where: 'idCauHoi = ?',
+        whereArgs: [chMap['idCauHoi']],
+      );
       List<DapAn> dapAns = daMaps.map((e) => DapAn.fromMap(e)).toList();
       cauHois.add(CauHoi.fromMap(chMap, dapAns: dapAns));
     }
@@ -49,17 +61,16 @@ class KhaoSatController {
 
   Future<List<KhaoSat>> getLatestFiveSurveys() async {
     final db = await _dbHelper.database;
-    final List<Map<String, dynamic>> maps = await db.query('KhaoSat', orderBy: 'ngayTao DESC', limit: 5);
+    final List<Map<String, dynamic>> maps = await db.query(
+      'KhaoSat',
+      orderBy: 'ngayTao DESC',
+      limit: 5,
+    );
     List<KhaoSat> result = [];
     for (var map in maps) {
       result.add(await _getFullKhaoSat(map));
     }
     return result;
-  }
-
-  Future<int> generateSurveyId() async {
-    // Không dùng hàm này nữa vì id auto increment
-    return 0;
   }
 
   Future<int> addSurvey(KhaoSat khaoSat) async {
@@ -79,15 +90,24 @@ class KhaoSatController {
 
   Future<void> updateSurvey(KhaoSat updatedSurvey) async {
     final db = await _dbHelper.database;
-    await db.update('KhaoSat', updatedSurvey.toMap(), where: 'idKhaoSat = ?', whereArgs: [updatedSurvey.id]);
+    await db.update(
+      'KhaoSat',
+      updatedSurvey.toMap(),
+      where: 'idKhaoSat = ?',
+      whereArgs: [updatedSurvey.id],
+    );
 
-    await db.delete('CauHoi', where: 'idKhaoSat = ?', whereArgs: [updatedSurvey.id]);
-    
+    await db.delete(
+      'CauHoi',
+      where: 'idKhaoSat = ?',
+      whereArgs: [updatedSurvey.id],
+    );
+
     for (var cauHoi in updatedSurvey.cauHois) {
-      cauHoi.id = 0; 
+      cauHoi.id = 0;
       int idCauHoi = await db.insert('CauHoi', cauHoi.toMap(updatedSurvey.id));
       for (var dapAn in cauHoi.dapAns) {
-        dapAn.id = 0; 
+        dapAn.id = 0;
         await db.insert('DapAn', dapAn.toMap(idCauHoi));
       }
     }
@@ -95,7 +115,12 @@ class KhaoSatController {
 
   Future<void> updateSurveyInfoOnly(KhaoSat updatedSurvey) async {
     final db = await _dbHelper.database;
-    await db.update('KhaoSat', updatedSurvey.toMap(), where: 'idKhaoSat = ?', whereArgs: [updatedSurvey.id]);
+    await db.update(
+      'KhaoSat',
+      updatedSurvey.toMap(),
+      where: 'idKhaoSat = ?',
+      whereArgs: [updatedSurvey.id],
+    );
   }
 
   Future<void> deleteSurvey(int id) async {
@@ -105,7 +130,11 @@ class KhaoSatController {
 
   Future<KhaoSat?> getById(int id) async {
     final db = await _dbHelper.database;
-    final maps = await db.query('KhaoSat', where: 'idKhaoSat = ?', whereArgs: [id]);
+    final maps = await db.query(
+      'KhaoSat',
+      where: 'idKhaoSat = ?',
+      whereArgs: [id],
+    );
     if (maps.isNotEmpty) {
       return await _getFullKhaoSat(maps.first);
     }
@@ -115,7 +144,13 @@ class KhaoSatController {
   Future<List<KhaoSat>> searchByName(String keyword) async {
     if (keyword.trim().isEmpty) return getLatestFiveSurveys();
     final db = await _dbHelper.database;
-    final maps = await db.query('KhaoSat', where: 'tenKhaoSat LIKE ?', whereArgs: ['%${keyword.trim()}%'], orderBy: 'ngayTao DESC', limit: 5);
+    final maps = await db.query(
+      'KhaoSat',
+      where: 'tenKhaoSat LIKE ?',
+      whereArgs: ['%${keyword.trim()}%'],
+      orderBy: 'ngayTao DESC',
+      limit: 5,
+    );
     List<KhaoSat> result = [];
     for (var map in maps) {
       result.add(await _getFullKhaoSat(map));
@@ -126,7 +161,13 @@ class KhaoSatController {
   Future<List<KhaoSat>> searchByMonth(int month) async {
     final db = await _dbHelper.database;
     String monthStr = month < 10 ? '0$month' : '$month';
-    final maps = await db.query('KhaoSat', where: "strftime('%m', ngayTao) = ?", whereArgs: [monthStr], orderBy: 'ngayTao DESC', limit: 5);
+    final maps = await db.query(
+      'KhaoSat',
+      where: "strftime('%m', ngayTao) = ?",
+      whereArgs: [monthStr],
+      orderBy: 'ngayTao DESC',
+      limit: 5,
+    );
     List<KhaoSat> result = [];
     for (var map in maps) {
       result.add(await _getFullKhaoSat(map));
@@ -159,10 +200,7 @@ class KhaoSatController {
           batBuoc: cauHoi.batBuoc,
           hinhAnh: cauHoi.hinhAnh,
           dapAns: cauHoi.dapAns.map((dapAn) {
-            return DapAn(
-              id: 0,
-              noiDung: dapAn.noiDung,
-            );
+            return DapAn(id: 0, noiDung: dapAn.noiDung);
           }).toList(),
         );
       }).toList(),
